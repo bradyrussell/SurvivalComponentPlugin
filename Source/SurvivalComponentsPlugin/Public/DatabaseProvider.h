@@ -24,7 +24,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static FProcessingRecipe GetRecipeDefinition(UObject* WorldContextObject, FName item);
 
 	UFUNCTION(BlueprintPure, Category="Inventory", meta = (WorldContext = "WorldContextObject")) static FLootDefinition GetLootDefinition(UObject* WorldContextObject, FName LootTable);
-	UFUNCTION(BlueprintPure, Category="Inventory", meta = (WorldContext = "WorldContextObject")) static TArray<FItemStack> CalculateLootDrop(UObject* WorldContextObject, FName LootTable);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory", meta = (WorldContext = "WorldContextObject")) static TArray<FItemStack> CalculateLootDrop(UObject* WorldContextObject, FName LootTable);
 
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static TMap<FName, FProcessingRecipe> GetAllRecipesOfType(
 		UObject* WorldContextObject,
