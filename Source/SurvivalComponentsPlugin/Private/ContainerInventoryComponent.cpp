@@ -10,7 +10,7 @@ void UContainerInventoryComponent::setLocked(bool Locked) {
 
 void UContainerInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	DOREPLIFETIME(UContainerInventoryComponent, bIsLocked);
-		DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
+	DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
 	DOREPLIFETIME(UBaseInventoryComponent, InventorySlots);
 	//DOREPLIFETIME(UContainerInventoryComponent, InventorySlots);
 }

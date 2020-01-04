@@ -18,9 +18,9 @@ USTRUCT(BlueprintType)
 		  Item(Item) {
 	}
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Item Stack") int32 Amount;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack") int32 Amount;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Item Stack") FName Item;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack") FName Item;
 
 	/*UFUNCTION(BlueprintPure) not allowed*/
 	bool isEmpty() const { return Item == NAME_None || Amount == 0; }
@@ -54,8 +54,8 @@ USTRUCT(BlueprintType)
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") int32 MaxStack = 256;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") bool bIsEquippable; // maybe store a ref to an equippableproperties class, similar to damagetypes
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") bool bIsConsumable; // same for consumable props?
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") TArray<uint8> ValidEquipmentSlots;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") int32 Value;
 	
@@ -66,10 +66,31 @@ USTRUCT(BlueprintType)
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") TSubclassOf<UItemEffectBase> ItemEffect;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") float ItemEffectMagnitude = 1.0f;
+
 };
 
-// todo loot table
-// todo singleton class to set global dbs like item defs, recipes, loot tables
+
+
+
+USTRUCT(BlueprintType)
+	struct FLootDrop  {
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Loot") float ChancePercent = 0.5;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Loot") TArray<FItemStack> Items;
+
+};
+
+USTRUCT(BlueprintType)
+	struct FLootDefinition : public FTableRowBase {
+	GENERATED_BODY()
+
+	// Chances should add up to or less than one. If less than one, remaining chance drops nothing
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Loot Table")TArray<FLootDrop> Possibilities;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Loot Table")TArray<FItemStack> Guarantees; 
+
+};
+
 
 USTRUCT(BlueprintType)
 	struct FProcessingRecipe : public FTableRowBase {
@@ -106,22 +127,22 @@ USTRUCT(BlueprintType)
 		  FuelRequired(FuelRequired) {
 	}
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") ECraftingType RecipeType = ECraftingType::CT_None;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") ECraftingType RecipeType = ECraftingType::CT_None;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") float ProcessingDuration = 1.0f;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") float ProcessingDuration = 1.0f;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") bool bRequiresFuel = false;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") bool bRequiresCatalyst = false;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") bool bHasVariableYield = false;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") bool bRequiresFuel = false;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") bool bRequiresCatalyst = false;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") bool bHasVariableYield = false;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") TArray<FItemStack> InputItems;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") TArray<FItemStack> OutputItems;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") TArray<FItemStack> InputItems;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") TArray<FItemStack> OutputItems;
 
 	// the min - max percentages which the output will be multiplied by
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") FVector2D VariableYieldRange;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") FVector2D VariableYieldRange;
 
 	// if RequiresCatalyst, these items must be present as input but wont be consumed
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") TArray<FItemStack> CatalystItems;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") TArray<FItemStack> CatalystItems;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Recipe") float FuelRequired = 0.f;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") float FuelRequired = 0.f;
 };

@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "DatabaseProvider.h"
 #include "InventoryStructs.h"
 #include "Kismet/GameplayStatics.h"
 #include "IDatabaseProvider.h"
+
 
 FItemDefinition UDatabaseProvider::GetItemDefinition(UObject* WorldContextObject, FName item) {
 	FString context = FString();
@@ -22,6 +22,33 @@ FProcessingRecipe UDatabaseProvider::GetRecipeDefinition(UObject* WorldContextOb
 	check(DB);
 	
 	return *DB->FindRow<FProcessingRecipe>(item, context);
+}
+
+FLootDefinition UDatabaseProvider::GetLootDefinition(UObject* WorldContextObject, FName LootTable) {
+	FString context = FString();
+
+	const auto DB = IIDatabaseProvider::Execute_GetLootDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	
+	return *DB->FindRow<FLootDefinition>(LootTable, context);
+}
+
+TArray<FItemStack> UDatabaseProvider::CalculateLootDrop(UObject* WorldContextObject, FName LootTable) {
+	auto LootDef = GetLootDefinition(WorldContextObject, LootTable);
+
+	TArray<FItemStack> Loot;
+	Loot.Append(LootDef.Guarantees);
+
+	float roll = FMath::FRandRange(0.0f,1.0f);
+
+	for (auto&elem:LootDef.Possibilities) {
+		roll -= elem.ChancePercent;
+		if(roll <= 0.f) { // this is the rolled drop
+			Loot.Append(elem.Items);
+			return Loot;
+		}
+	}//rolled nothing
+	return Loot;
 }
 
 TMap<FName, FProcessingRecipe> UDatabaseProvider::GetAllRecipesOfType(UObject* WorldContextObject, ECraftingType Type) {

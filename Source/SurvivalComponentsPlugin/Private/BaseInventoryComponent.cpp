@@ -19,10 +19,14 @@ UBaseInventoryComponent::UBaseInventoryComponent() {
 // Called when the game starts
 void UBaseInventoryComponent::BeginPlay() {
 	Super::BeginPlay();
-	InventorySlots.AddDefaulted(NumberSlots);
+
+	if (GetOwnerRole() == ROLE_Authority)
+		InventorySlots.AddDefaulted(NumberSlots);
 	// ...
 
 }
+
+
 
 FItemStack UBaseInventoryComponent::AddItem(FItemStack NewItem) {
 	const auto MaxStack = UDatabaseProvider::GetItemDefinition(this, NewItem.Item).MaxStack;
@@ -57,8 +61,9 @@ FItemStack UBaseInventoryComponent::AddItem(FItemStack NewItem) {
 }
 
 TArray<FItemStack> UBaseInventoryComponent::AddItems(TArray<FItemStack> NewItems) {
-	if(NewItems.Num() == 0) return NewItems;
-	
+	if (NewItems.Num() == 0)
+		return NewItems;
+
 	TArray<FItemStack> excess;
 
 	for (auto& elem : NewItems) {
@@ -80,7 +85,6 @@ FItemStack UBaseInventoryComponent::RemoveItem(FItemStack Item) {
 				return Item;
 		}
 	}
-
 	return Item;
 }
 
@@ -104,6 +108,27 @@ bool UBaseInventoryComponent::TransferToInventory(UBaseInventoryComponent* Recip
 	return true;
 }
 
+bool UBaseInventoryComponent::TransferToInventorySlot(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot) {
+	const auto ItemInSlot = InventorySlots[FromSlot];
+	if (ItemInSlot.isEmpty())
+		return false;
+
+	if (Recipient->InventorySlots[ToSlot].Item != ItemInSlot.Item || Recipient->InventorySlots[ToSlot].isEmpty()) {
+		InventorySlots[FromSlot] = Recipient->InventorySlots[ToSlot];
+		Recipient->InventorySlots[ToSlot] = ItemInSlot;
+		return true;
+	}
+	else {
+		const auto MaxStack = UDatabaseProvider::GetItemDefinition(this, ItemInSlot.Item).MaxStack;
+		const int AbleToTake = MaxStack - Recipient->InventorySlots[ToSlot].Amount;
+		const int AmountTaken = FMath::Min(AbleToTake, ItemInSlot.Amount);
+		InventorySlots[FromSlot].Amount -= AmountTaken;
+		Recipient->InventorySlots[ToSlot].Amount += AmountTaken;
+		return true;
+	}
+
+}
+
 bool UBaseInventoryComponent::TransferAllToInventory(UBaseInventoryComponent* Recipient) {
 	if (GetNumberFilledSlots() == 0)
 		return false;
@@ -118,6 +143,12 @@ FItemStack UBaseInventoryComponent::ExchangeItem(int32 Slot, FItemStack NewItem)
 	InventorySlots[Slot] = NewItem;
 	return Old;
 }
+
+void UBaseInventoryComponent::OnRep_InventorySlots() {
+	if(InventoryChanged_Event.IsBound()) InventoryChanged_Event.Broadcast(true);
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_InventorySlots()"));
+}
+
 
 bool UBaseInventoryComponent::hasItem(FItemStack Item) {
 	for (auto& elem : InventorySlots) {
@@ -176,6 +207,22 @@ int32 UBaseInventoryComponent::GetNumberFilledSlots() { return NumberSlots - Get
 
 void UBaseInventoryComponent::SwapSlots(int32 FirstSlot, int32 SecondSlot) { InventorySlots.Swap(FirstSlot, SecondSlot); }
 
+void UBaseInventoryComponent::SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot) {
+	if (InventorySlots[FirstSlot].Item == InventorySlots[SecondSlot].Item && !InventorySlots[FirstSlot].isEmpty() && !InventorySlots[SecondSlot].isEmpty()) {
+		const auto MaxStack = UDatabaseProvider::GetItemDefinition(this, InventorySlots[SecondSlot].Item).MaxStack;
+
+		const int AbleToTake = MaxStack - InventorySlots[SecondSlot].Amount;
+
+		if (AbleToTake == 0) { SwapSlots(FirstSlot, SecondSlot); }
+		else {
+			const int AmountTaken = FMath::Min(AbleToTake, InventorySlots[FirstSlot].Amount);
+			InventorySlots[FirstSlot].Amount -= AmountTaken;
+			InventorySlots[SecondSlot].Amount += AmountTaken;
+		}
+	}
+	else { SwapSlots(FirstSlot, SecondSlot); }
+}
+
 bool UBaseInventoryComponent::areAllEmpty(TArray<FItemStack> Items) {
 	for (auto& elem : Items) {
 		if (!elem.isEmpty())
@@ -204,4 +251,5 @@ void UBaseInventoryComponent::SortInventory() { InventorySlots.Sort(); }
 void UBaseInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
 	DOREPLIFETIME(UBaseInventoryComponent, InventorySlots);
+	//DOREPLIFETIME_CONDITION_NOTIFY(UBaseInventoryComponent, InventorySlots, COND_None, REPNOTIFY_Always);
 }

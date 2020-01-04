@@ -7,7 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "BaseInventoryComponent.generated.h"
 
-#define DBG_MAX_STACK 256
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryChanged, bool, bShouldRefresh);
 
 UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
 	class SURVIVALCOMPONENTSPLUGIN_API UBaseInventoryComponent : public UActorComponent {
@@ -17,13 +17,16 @@ public:
 	// Sets default values for this component's properties
 	UBaseInventoryComponent();
 
+	UPROPERTY(BlueprintAssignable, Category="Inventory - Events") FInventoryChanged InventoryChanged_Event;
+
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory") int32 NumberSlots;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated, Category="Inventory") TArray<FItemStack> InventorySlots;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, ReplicatedUsing=OnRep_InventorySlots, Category="Inventory") TArray<FItemStack> InventorySlots;
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 public:
+
 	//adds an item stack to the inventory, returning any excess items
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack AddItem(FItemStack NewItem);
 
@@ -38,10 +41,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferToInventory(UBaseInventoryComponent* Recipient, int32 Slot);
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferToInventorySlot(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot);
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAllToInventory(UBaseInventoryComponent* Recipient);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack ExchangeItem(int32 Slot, FItemStack NewItem);
 
+	UFUNCTION() virtual void OnRep_InventorySlots();
+	
 	// returns whether the inventory contains at least the given Amount of Item
 	UFUNCTION(BlueprintCallable, Category="Inventory") bool hasItem(FItemStack Item);
 
@@ -62,6 +69,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetNumberFilledSlots();
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void SwapSlots(int32 FirstSlot, int32 SecondSlot);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot);
 
 	// returns true if all items are empty
 	UFUNCTION(BlueprintPure, Category="Inventory") static bool areAllEmpty(TArray<FItemStack> Items);

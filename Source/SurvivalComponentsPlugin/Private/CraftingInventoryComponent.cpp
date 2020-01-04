@@ -138,7 +138,7 @@ float UCraftingInventoryComponent::GetElapsedTime() const { return GetWorld()->G
 
 void UCraftingInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	DOREPLIFETIME(UContainerInventoryComponent, bIsLocked);
-		DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
+	DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
 	DOREPLIFETIME(UBaseInventoryComponent, InventorySlots);
 	DOREPLIFETIME(UCraftingInventoryComponent, Type);
 	DOREPLIFETIME(UCraftingInventoryComponent, Fuel);

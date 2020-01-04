@@ -14,8 +14,10 @@ UEntityInventoryComponent::UEntityInventoryComponent() {
 
 void UEntityInventoryComponent::BeginPlay() {
 	Super::BeginPlay();
+	if(GetOwnerRole() == ROLE_Authority){
 	EquipmentSlots.AddDefaulted(NumberEquipmentSlots);
 	CurrentEquipmentEffects.AddDefaulted(NumberEquipmentSlots);
+	}
 }
 
 void UEntityInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
@@ -58,7 +60,7 @@ bool UEntityInventoryComponent::EquipItem(int32 Slot, uint8 EquipmentSlot, APawn
 
 	const auto ItemDef = UDatabaseProvider::GetItemDefinition(this, Item.Item);
 
-	if (ItemDef.bIsEquippable) {
+	if (ItemDef.ValidEquipmentSlots.Contains(EquipmentSlot)) {
 		InventorySlots[Slot] = FItemStack(); // swap the slots
 		EquipmentSlots[EquipmentSlot] = Item;
 
