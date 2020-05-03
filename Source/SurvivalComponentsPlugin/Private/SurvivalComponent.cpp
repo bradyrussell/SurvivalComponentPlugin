@@ -86,6 +86,7 @@ float USurvivalComponent::GetStaminaPercentage() const {
 }
 
 void USurvivalComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(USurvivalComponent, MaxHealth);
 	DOREPLIFETIME(USurvivalComponent, Health);
 	DOREPLIFETIME(USurvivalComponent, HealthRegenerationPerSecond);

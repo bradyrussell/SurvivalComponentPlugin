@@ -137,9 +137,8 @@ float UCraftingInventoryComponent::GetRemainingTime() const { return GetWorld()-
 float UCraftingInventoryComponent::GetElapsedTime() const { return GetWorld()->GetTimerManager().GetTimerElapsed(CurrentJob_Timer); }
 
 void UCraftingInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-	DOREPLIFETIME(UContainerInventoryComponent, bIsLocked);
-	DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
-	DOREPLIFETIME(UBaseInventoryComponent, InventorySlots);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(UCraftingInventoryComponent, Type);
 	DOREPLIFETIME(UCraftingInventoryComponent, Fuel);
 	DOREPLIFETIME(UCraftingInventoryComponent, bIsCurrentlyProcessing);
