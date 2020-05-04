@@ -106,8 +106,9 @@ bool UEntityInventoryComponent::OnEquipmentHit(float Damage,
 }
 
 void UEntityInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-		DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
-	DOREPLIFETIME(UBaseInventoryComponent, InventorySlots);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+
 	DOREPLIFETIME(UEntityInventoryComponent, NumberEquipmentSlots);
 	DOREPLIFETIME(UEntityInventoryComponent, EquipmentSlots);
 }

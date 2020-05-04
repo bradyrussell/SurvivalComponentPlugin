@@ -84,6 +84,7 @@ float UPlayerSurvivalComponent::GetThirstPercentage() const { return Thirst / Ma
 float UPlayerSurvivalComponent::GetOxygenPercentage() const { return Oxygen / MaxOxygen; }
 
 void UPlayerSurvivalComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UPlayerSurvivalComponent, Hunger);
 	DOREPLIFETIME(UPlayerSurvivalComponent, MaxHunger);
 	DOREPLIFETIME(UPlayerSurvivalComponent, HungerDeductedPerSecond);
@@ -99,15 +100,4 @@ void UPlayerSurvivalComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME(UPlayerSurvivalComponent, OxygenDeductedPerSecond);
 	DOREPLIFETIME(UPlayerSurvivalComponent, bIsDeductingOxygen);
 
-	DOREPLIFETIME(USurvivalComponent, MaxHealth);
-	DOREPLIFETIME(USurvivalComponent, Health);
-	DOREPLIFETIME(USurvivalComponent, HealthRegenerationPerSecond);
-	DOREPLIFETIME(USurvivalComponent, bIsRegeneratingHealth);
-
-	DOREPLIFETIME(USurvivalComponent, Stamina);
-	DOREPLIFETIME(USurvivalComponent, MaxStamina);
-	DOREPLIFETIME(USurvivalComponent, StaminaRegenerationPerSecond);
-	DOREPLIFETIME(USurvivalComponent, bIsRegeneratingStamina);
-
-	DOREPLIFETIME(USurvivalComponent, ArmorPercentage);
 }

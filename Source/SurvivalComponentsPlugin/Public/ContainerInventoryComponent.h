@@ -16,10 +16,10 @@ class SURVIVALCOMPONENTSPLUGIN_API UContainerInventoryComponent : public UBaseIn
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container") FText ContainerTitle;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container") FString ContainerOwner;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) FText ContainerTitle;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) FString ContainerOwner;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container") bool bIsLocked = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) bool bIsLocked = false;
 
 	// controllers who are currently looking at inventory contents
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated, Category="Inventory - Container") TArray<APlayerController*> CurrentViewers;

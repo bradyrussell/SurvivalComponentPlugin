@@ -208,6 +208,7 @@ bool UWeaponComponent::SetWeapon(FWeaponProperties NewWeapon) {
 void UWeaponComponent::SetWeaponInventory(UBaseInventoryComponent* NewInventory) { AmmoInventory = NewInventory; }
 
 void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UWeaponComponent, LoadedAmmo);
 	DOREPLIFETIME(UWeaponComponent, bIsAds);
 	DOREPLIFETIME(UWeaponComponent, isShooting);

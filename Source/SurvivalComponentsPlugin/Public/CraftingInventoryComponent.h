@@ -32,8 +32,8 @@ public:
 
 	TQueue<FProcessingRecipe> ProcessingQueue;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting") float Fuel = 0.f;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting") float MaximumFuel = 10000.f;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting", SaveGame) float Fuel = 0.f;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting", SaveGame) float MaximumFuel = 10000.f;
 
 	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Replicated, Category="Inventory - Crafting") bool bIsCurrentlyProcessing = false;
 

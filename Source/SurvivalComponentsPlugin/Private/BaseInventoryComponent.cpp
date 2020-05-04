@@ -249,6 +249,8 @@ void UBaseInventoryComponent::SortInventory() { InventorySlots.Sort(); }
 
 
 void UBaseInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
 	DOREPLIFETIME(UBaseInventoryComponent, NumberSlots);
 	DOREPLIFETIME(UBaseInventoryComponent, InventorySlots);
 	//DOREPLIFETIME_CONDITION_NOTIFY(UBaseInventoryComponent, InventorySlots, COND_None, REPNOTIFY_Always);

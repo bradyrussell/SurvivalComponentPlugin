@@ -19,8 +19,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="Inventory - Events") FInventoryChanged InventoryChanged_Event;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory") int32 NumberSlots;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, ReplicatedUsing=OnRep_InventorySlots, Category="Inventory") TArray<FItemStack> InventorySlots;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory", SaveGame) int32 NumberSlots;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, ReplicatedUsing=OnRep_InventorySlots, Category="Inventory", SaveGame) TArray<FItemStack> InventorySlots;
 
 protected:
 	// Called when the game starts

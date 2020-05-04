@@ -25,8 +25,8 @@ protected:
 public:
 	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory - Equipment") int32 NumberEquipmentSlots;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated, Category="Inventory - Equipment") TArray<FItemStack> EquipmentSlots;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory - Equipment") int32 NumberEquipmentSlots; // not  savegame because it should be const
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated, Category="Inventory - Equipment", SaveGame) TArray<FItemStack> EquipmentSlots;
 
 	//this array is aligned with equipmentslots
 	UPROPERTY(BlueprintReadWrite) TArray<UEquipmentItemEffectBase*> CurrentEquipmentEffects;
