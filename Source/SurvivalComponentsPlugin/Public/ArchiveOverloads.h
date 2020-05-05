@@ -1,4 +1,5 @@
 #pragma once
+#include "BuildingUnitBase.h"
 
 // this currently traverses a tree in post order
 /*FORCEINLINE FArchive& operator<<(FArchive& Ar, ABuildingUnitBase& BuildingUnit) {
@@ -31,7 +32,7 @@
 	return Ar;
 }*/
 
-// this currently traverses a tree in post order
+/*// this currently traverses a tree in post order
 FORCEINLINE FArchive& operator<<(FArchive& Ar, FSerializedBuildingUnit &SerializedBuildingUnit) {
 
 	const FString saveLoad = Ar.IsSaving() ? "Saving" : "Loading";
@@ -76,4 +77,4 @@ FORCEINLINE FArchive& operator<<(FArchive& Ar, FSerializedBuilding &SerializedBu
 	UE_LOG(LogTemp, Warning, TEXT("= %s: %d b metadata"),*saveLoad, SerializedBuilding.Metadata.Num());
 	
 	return Ar;
-}
+}*/

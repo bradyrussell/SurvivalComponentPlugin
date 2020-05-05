@@ -1,3 +1,4 @@
+/*
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
@@ -45,7 +46,7 @@ public:
 
 	UFUNCTION(BlueprintCallable) void AddSocketedChild(FName socket, ABuildingUnitBase* child);
 
-	/*UFUNCTION(BlueprintCallable) */void AddSocketedChild(int32 socket_index, ABuildingUnitBase* child);
+	/*UFUNCTION(BlueprintCallable) #1#void AddSocketedChild(int32 socket_index, ABuildingUnitBase* child);
 
 	UFUNCTION(BlueprintCallable) void AddUnsocketedChild(FTransform attachment, ABuildingUnitBase* child);
 
@@ -68,3 +69,4 @@ public:
 	
 
 };
+*/

@@ -124,7 +124,7 @@ FName UDatabaseProvider::IndexToRecipe(UObject* WorldContextObject, int32 Index)
 	return Names[Index-1];
 }
 
-int32 UDatabaseProvider::BuildingUnitToIndex(UObject* WorldContextObject, TSubclassOf<ABuildingUnitBase> BuildingUnitClass) {
+/*int32 UDatabaseProvider::BuildingUnitToIndex(UObject* WorldContextObject, TSubclassOf<ABuildingUnitBase> BuildingUnitClass) {
 	const auto DB = IIDatabaseProvider::Execute_GetBuildingDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
 	check(DB);
 	const FString context;
@@ -151,4 +151,57 @@ TSubclassOf<ABuildingUnitBase> UDatabaseProvider::IndexToBuildingUnit(UObject* W
 	DB->GetAllRows<FBuildingUnitDefinition>(context, out);
 
 	return out[Index]->BuildingUnitClass;
+}*/
+
+int32 UDatabaseProvider::ShelterUnitToIndex(UObject* WorldContextObject, TSubclassOf<AShelterUnitBase> ShelterUnitClass) {
+	const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	const FString context;
+	
+	auto keys = DB->GetRowNames();
+
+	int32 outIndex = -1;
+	
+	DB->ForeachRow<FShelterUnitDefinition>(context, [keys, ShelterUnitClass, &outIndex](const FName& Key, const FShelterUnitDefinition& Value) {
+		if(Value.ShelterUnitClass == ShelterUnitClass) outIndex = keys.Find(Key);
+	});
+
+	return outIndex;
+}
+
+TSubclassOf<AShelterUnitBase> UDatabaseProvider::IndexToShelterUnit(UObject* WorldContextObject, int32 Index) {
+    const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+
+	const FString context;
+
+	TArray<FShelterUnitDefinition*> out;
+	
+	DB->GetAllRows<FShelterUnitDefinition>(context, out);
+
+	return out[Index]->ShelterUnitClass;
+}
+
+FShelterUnitDefinition UDatabaseProvider::GetShelterUnitDefinition(UObject* WorldContextObject, FName ShelterUnit) {
+	FString context = FString();
+
+	const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	
+	return *DB->FindRow<FShelterUnitDefinition>(ShelterUnit, context);
+}
+
+FShelterUnitDefinition UDatabaseProvider::GetShelterUnitDefinitionByIndex(UObject* WorldContextObject, int32 Index) {
+	    const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+
+	const FString context;
+
+	TArray<FShelterUnitDefinition*> out;
+	
+	DB->GetAllRows<FShelterUnitDefinition>(context, out);
+
+	check(out[Index]);
+	
+	return *out[Index];
 }

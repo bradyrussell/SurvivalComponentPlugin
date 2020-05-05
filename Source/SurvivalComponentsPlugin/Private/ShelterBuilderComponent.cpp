@@ -10,6 +10,7 @@
 #include "DatabaseProvider.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
+#include "ShelterUnitBase.h"
 
 
 // Sets default values for this component's properties

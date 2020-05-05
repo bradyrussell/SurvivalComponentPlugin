@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/*// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "BuildingUnitBase.h"
@@ -270,7 +270,7 @@ ABuildingUnitBase* ABuildingUnitBase::DeserializeFromStruct(UObject* WorldContex
 	for (int i = 0; i < SerializedBuildingUnit.SocketedAttachments.Num(); i++) { // 
 		if(SerializedBuildingUnit.SocketedAttachments[i].BU_Index != -1) {
 		//const auto transform2 = newBU->BuildingMesh->GetSocketTransform(newBU->BuildingMesh->GetAllSocketNames()[i]); // not needed
-		newBU->AddSocketedChild(i,DeserializeFromStruct(WorldContextObject,SerializedBuildingUnit.SocketedAttachments[i]/*, transform2*/));
+		newBU->AddSocketedChild(i,DeserializeFromStruct(WorldContextObject,SerializedBuildingUnit.SocketedAttachments[i]/*, transform2#1#));
 		}
 	}
 
@@ -321,4 +321,4 @@ ABuildingUnitBase* ABuildingUnitBase::RecursiveGetRoot() {
 		Ar << elem.transform;
 		Ar << *elem.child;
 	}
- */
+ #1#*/

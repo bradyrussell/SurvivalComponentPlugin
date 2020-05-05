@@ -3,11 +3,14 @@
 #include "CoreMinimal.h"
 //#include "DataTableEditor/Private/SRowEditor.h"
 #include "Engine/DataTable.h"
+#include "ShelterUnitBase.h"
 #include "BuildSystemStructs.generated.h"
 
 struct FSerializedBuildingUnit;
 class ABuildingUnitBase;
+class AShelterUnitBase;
 
+/*
 USTRUCT(BlueprintType)
 struct FUnsocketedAttachment
 {
@@ -22,9 +25,10 @@ struct FUnsocketedAttachment
 	// the attached object
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere) ABuildingUnitBase* child;
 };
+*/
 
 
-USTRUCT(BlueprintType)
+/*USTRUCT(BlueprintType)
 struct FBuildingSocket
 {
 	GENERATED_BODY()
@@ -35,8 +39,10 @@ struct FBuildingSocket
 	// the mutually exclusive axis the socket is along. X+ X- etc
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere) FString axis;
 
-};
+};*/
 
+
+/*
 USTRUCT(BlueprintType)
 struct FElectricConnection
 {
@@ -57,8 +63,10 @@ struct FElectricConnection
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere) FVector child_attach_location;
 
 };
+*/
 
 
+/*
 USTRUCT(BlueprintType)
 struct FSerializedBuildingUnit
 {
@@ -85,12 +93,24 @@ struct FSerializedBuilding
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere) FSerializedBuildingUnit Root;
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere) TArray<uint8> Metadata;
 
+};*/
+
+USTRUCT(BlueprintType)
+	struct FShelterUnitDefinition : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") FText DisplayName;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") TSubclassOf<AShelterUnitBase> ShelterUnitClass;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") UStaticMesh* ShelterUnitMesh;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") FString FitsSocket;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") bool bRequiresSocket;
+	//upgrade path
+	// durability
+
 };
 
 
-
-
-
+/*
 USTRUCT(BlueprintType)
 	struct FBuildingUnitDefinition : public FTableRowBase {
 	GENERATED_BODY()
@@ -101,4 +121,5 @@ USTRUCT(BlueprintType)
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") FString FitsSocket;
 
 };
+*/
 
