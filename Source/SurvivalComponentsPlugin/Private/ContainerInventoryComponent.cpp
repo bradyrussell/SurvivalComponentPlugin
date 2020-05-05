@@ -12,6 +12,7 @@ void UContainerInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(UContainerInventoryComponent, bIsLocked);
-
+	DOREPLIFETIME(UContainerInventoryComponent, ContainerOwner);
+	DOREPLIFETIME(UContainerInventoryComponent, ContainerTitle);
 	//DOREPLIFETIME(UContainerInventoryComponent, InventorySlots);
 }

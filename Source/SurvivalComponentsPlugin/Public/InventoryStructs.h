@@ -18,9 +18,9 @@ USTRUCT(BlueprintType)
 		  Item(Item) {
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack") int32 Amount;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack", SaveGame) int32 Amount;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack") FName Item;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack", SaveGame) FName Item;
 
 	/*UFUNCTION(BlueprintPure) not allowed*/
 	bool isEmpty() const { return Item == NAME_None || Amount == 0; }

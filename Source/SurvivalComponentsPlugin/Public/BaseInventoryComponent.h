@@ -9,7 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryChanged, bool, bShouldRefresh);
 
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Blueprintable )
 	class SURVIVALCOMPONENTSPLUGIN_API UBaseInventoryComponent : public UActorComponent {
 	GENERATED_BODY()
 
