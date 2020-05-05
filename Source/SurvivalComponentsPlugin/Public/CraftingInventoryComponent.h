@@ -18,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FQueuedProcessingRecipe, FProcessing
 /**
  * 
  */
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) , Blueprintable)
 	class SURVIVALCOMPONENTSPLUGIN_API UCraftingInventoryComponent : public UContainerInventoryComponent {
 	GENERATED_BODY()
 public:

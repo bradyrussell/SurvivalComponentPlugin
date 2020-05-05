@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Blueprintable )
 class SURVIVALCOMPONENTSPLUGIN_API UContainerInventoryComponent : public UBaseInventoryComponent
 {
 	GENERATED_BODY()
@@ -22,7 +22,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) bool bIsLocked = false;
 
 	// controllers who are currently looking at inventory contents
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated, Category="Inventory - Container") TArray<APlayerController*> CurrentViewers;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Inventory - Container") TArray<APlayerController*> CurrentViewers;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Container") void setLocked(bool Locked);
 

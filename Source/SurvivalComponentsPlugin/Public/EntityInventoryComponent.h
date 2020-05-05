@@ -11,7 +11,7 @@ class AController;
 /**
  * 
  */
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) , Blueprintable)
 class SURVIVALCOMPONENTSPLUGIN_API UEntityInventoryComponent : public UBaseInventoryComponent
 {
 	GENERATED_BODY()
