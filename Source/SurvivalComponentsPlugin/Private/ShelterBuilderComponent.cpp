@@ -124,8 +124,12 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 			UE_LOG(LogTemp, Warning, TEXT("ShelterBuilderComponent owner is not PlayerController, removing!"));
 			this->DestroyComponent();
 		}
+		UE_LOG(LogTemp, Warning, TEXT("building ON"));
 	}
-	else { if (IsValid(BuildingHologramActor)) { BuildingHologramActor->Destroy(); } }
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("building OFF"));
+		if (IsValid(BuildingHologramActor)) { BuildingHologramActor->Destroy(); }
+	}
 
 }
 
@@ -249,7 +253,7 @@ void UShelterBuilderComponent::DestroyShelterUnit() {
 
 void UShelterBuilderComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	DOREPLIFETIME(UShelterBuilderComponent, SelectedShelterUnitIndex);
-
+	DOREPLIFETIME(UShelterBuilderComponent, bIsBuilding);
 }
 
 
