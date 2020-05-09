@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
+#include "DatabaseProvider.h"
 
 
 bool UCraftingInventoryComponent::QueueRecipe(FProcessingRecipe InRecipe) {
@@ -135,6 +136,47 @@ bool UCraftingInventoryComponent::isCurrentlyProcessing() const { return bIsCurr
 float UCraftingInventoryComponent::GetRemainingTime() const { return GetWorld()->GetTimerManager().GetTimerRemaining(CurrentJob_Timer); }
 
 float UCraftingInventoryComponent::GetElapsedTime() const { return GetWorld()->GetTimerManager().GetTimerElapsed(CurrentJob_Timer); }
+
+void UCraftingInventoryComponent::Server_QueueRecipe_Implementation(FName RecipeName) {
+	auto recipe = UDatabaseProvider::GetRecipeDefinition(this, RecipeName);
+	QueueRecipe(recipe);
+}
+
+bool UCraftingInventoryComponent::Server_QueueRecipe_Validate(FName RecipeName) {
+	return UDatabaseProvider::GetRecipeExists(this,RecipeName);
+}
+
+void UCraftingInventoryComponent::Server_BeginProcessing_Implementation() {
+	BeginProcessing();
+}
+
+bool UCraftingInventoryComponent::Server_BeginProcessing_Validate() {
+	return true;
+}
+
+void UCraftingInventoryComponent::Server_CancelAndClearQueue_Implementation() {
+	CancelAndClearQueue();
+}
+
+bool UCraftingInventoryComponent::Server_CancelAndClearQueue_Validate() {
+	return true;
+}
+
+void UCraftingInventoryComponent::Server_ClearQueue_Implementation() {
+	ClearQueue();
+}
+
+bool UCraftingInventoryComponent::Server_ClearQueue_Validate() {
+	return true;
+}
+
+void UCraftingInventoryComponent::Server_CancelProcessing_Implementation() {
+	CancelProcessing();
+}
+
+bool UCraftingInventoryComponent::Server_CancelProcessing_Validate() {
+	return true;
+}
 
 void UCraftingInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

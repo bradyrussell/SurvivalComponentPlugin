@@ -57,7 +57,7 @@ public:
 private:
 	//called when a recipe finishes. 
 	void EndProcessing();
-
+	
 	UFUNCTION(NetMulticast, Reliable) void Multi_BeginProcessingRecipe(FProcessingRecipe Recipe);
 	UFUNCTION(NetMulticast, Reliable) void Multi_FinishProcessingRecipe(FProcessingRecipe Recipe);
 	UFUNCTION(NetMulticast, Reliable) void Multi_FailedProcessingRecipe(FProcessingRecipe Recipe);
@@ -78,4 +78,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory - Crafting") bool isCurrentlyProcessing() const;
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") float GetRemainingTime() const;
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") float GetElapsedTime() const;
+
+
+	/* Client-to-server functions */
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_CancelProcessing();
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_ClearQueue();
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_CancelAndClearQueue();
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_QueueRecipe(FName RecipeName);
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_BeginProcessing();
 };

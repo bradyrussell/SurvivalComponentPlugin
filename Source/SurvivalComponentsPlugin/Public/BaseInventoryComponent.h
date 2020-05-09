@@ -59,7 +59,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory") TArray<FItemStack> GetInventorySnapshot() const;
 
 	// returns a reference to the inventory array. do not modify it
-	UFUNCTION(BlueprintCallable, Category="Inventory") void GetInventoryReference(TArray<FItemStack>& InventoryRef) const;
+	UFUNCTION(BlueprintCallable, Category="Inventory") void GetInventoryReference(TArray<FItemStack>& OutInventoryRef) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void ResizeInventory(int32 NewNumberSlots);
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void ClearInventory();
@@ -81,6 +81,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Inventory") void SortInventory();
 
+	/* Client to Server functions - useful for UI */
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_SortInventory();
+	
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferToInventory(UBaseInventoryComponent* Recipient, int32 Slot);
+
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferToInventorySlot(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot);
+
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferAllToInventory(UBaseInventoryComponent* Recipient);
+
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot);
+	/* End of client to server functions */
+	
 	//// data lookups below
 
 	//UFUNCTION(BlueprintPure, Category="Inventory") int32 GetMaxStackForItem(FName item) const;

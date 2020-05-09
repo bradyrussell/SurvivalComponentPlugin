@@ -105,6 +105,30 @@ bool UEntityInventoryComponent::OnEquipmentHit(float Damage,
 	return true;
 }
 
+void UEntityInventoryComponent::Server_UnequipItem_Implementation(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
+	UnequipItem(Slot,EquipmentSlot,Cause,Instigator);
+}
+
+bool UEntityInventoryComponent::Server_UnequipItem_Validate(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
+		return true; //todo
+}
+
+void UEntityInventoryComponent::Server_EquipItem_Implementation(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
+	EquipItem(Slot,EquipmentSlot,Cause,Instigator);
+}
+
+bool UEntityInventoryComponent::Server_EquipItem_Validate(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
+		return true; //todo
+}
+
+void UEntityInventoryComponent::Server_ConsumeItem_Implementation(int32 Slot, APawn* Cause, AController* Instigator, float MagnitudeMultiplier) {
+	ConsumeItem(Slot,Cause, Instigator, MagnitudeMultiplier);
+}
+
+bool UEntityInventoryComponent::Server_ConsumeItem_Validate(int32 Slot, APawn* Cause, AController* Instigator, float MagnitudeMultiplier) {
+	return true; //todo
+}
+
 void UEntityInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 

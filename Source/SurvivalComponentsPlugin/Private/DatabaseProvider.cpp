@@ -24,6 +24,16 @@ FProcessingRecipe UDatabaseProvider::GetRecipeDefinition(UObject* WorldContextOb
 	return *DB->FindRow<FProcessingRecipe>(item, context);
 }
 
+bool UDatabaseProvider::GetRecipeExists(UObject* WorldContextObject, FName item) {
+	FString context = FString();
+
+	const auto DB = IIDatabaseProvider::Execute_GetRecipeDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	
+	return DB->GetRowNames().Contains(item);
+}
+
+
 FLootDefinition UDatabaseProvider::GetLootDefinition(UObject* WorldContextObject, FName LootTable) {
 	FString context = FString();
 

@@ -265,6 +265,7 @@ void UShelterBuilderComponent::DestroyShelterUnit() {
 
 
 void UShelterBuilderComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UShelterBuilderComponent, SelectedShelterUnitIndex);
 	DOREPLIFETIME(UShelterBuilderComponent, bIsBuilding);
 }

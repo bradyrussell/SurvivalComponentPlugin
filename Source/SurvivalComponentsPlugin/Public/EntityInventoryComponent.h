@@ -35,6 +35,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly) bool EquipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly) bool UnequipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
-
 	UFUNCTION(BlueprintCallable) bool OnEquipmentHit(float Damage, AActor* DamageCause, AController* DamageInstigator, TSubclassOf<UDamageType>  DamageType, APawn* Wearer = nullptr, AController* WearerController = nullptr);
+
+	/* Client-to-server functions */
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_ConsumeItem(int32 Slot, APawn* Cause = nullptr, AController* Instigator = nullptr, float MagnitudeMultiplier = 1.0);
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_EquipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
+	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_UnequipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
+
+	
 };

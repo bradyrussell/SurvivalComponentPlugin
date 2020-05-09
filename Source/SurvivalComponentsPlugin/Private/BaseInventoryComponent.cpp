@@ -67,9 +67,11 @@ TArray<FItemStack> UBaseInventoryComponent::AddItems(TArray<FItemStack> NewItems
 	TArray<FItemStack> excess;
 
 	for (auto& elem : NewItems) {
-		auto excessStack = AddItem(elem);
-		if (!excessStack.isEmpty())
-			excess.Add(excessStack);
+		if(!elem.isEmpty()){
+			auto excessStack = AddItem(elem);
+			if (!excessStack.isEmpty())
+				excess.Add(excessStack);
+		}
 	}
 	return excess;
 }
@@ -132,6 +134,7 @@ bool UBaseInventoryComponent::TransferToInventorySlot(UBaseInventoryComponent* R
 bool UBaseInventoryComponent::TransferAllToInventory(UBaseInventoryComponent* Recipient) {
 	if (GetNumberFilledSlots() == 0)
 		return false;
+
 	const auto overflow = Recipient->AddItems(InventorySlots);
 	ClearInventory();
 	AddItems(overflow);
@@ -146,7 +149,7 @@ FItemStack UBaseInventoryComponent::ExchangeItem(int32 Slot, FItemStack NewItem)
 
 void UBaseInventoryComponent::OnRep_InventorySlots() {
 	if(InventoryChanged_Event.IsBound()) InventoryChanged_Event.Broadcast(true);
-	UE_LOG(LogTemp, Warning, TEXT("OnRep_InventorySlots()"));
+	//UE_LOG(LogTemp, Warning, TEXT("OnRep_InventorySlots()"));
 }
 
 
@@ -246,6 +249,46 @@ FString UBaseInventoryComponent::ToStrings(TArray<FItemStack> Items) {
 }
 
 void UBaseInventoryComponent::SortInventory() { InventorySlots.Sort(); }
+
+void UBaseInventoryComponent::Server_SortInventory_Implementation() {
+	SortInventory();
+}
+
+bool UBaseInventoryComponent::Server_SortInventory_Validate() {
+	return true;
+}
+
+void UBaseInventoryComponent::Server_SwapOrCombineSlots_Implementation(int32 FirstSlot, int32 SecondSlot) {
+	SwapOrCombineSlots(1,2);
+}
+
+bool UBaseInventoryComponent::Server_SwapOrCombineSlots_Validate(int32 FirstSlot, int32 SecondSlot) {
+	return true;
+}
+
+void UBaseInventoryComponent::Server_TransferAllToInventory_Implementation(UBaseInventoryComponent* Recipient) {
+	TransferAllToInventory(Recipient);
+}
+
+bool UBaseInventoryComponent::Server_TransferAllToInventory_Validate(UBaseInventoryComponent* Recipient) {
+	return true;
+}
+
+void UBaseInventoryComponent::Server_TransferToInventorySlot_Implementation(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot) {
+	TransferToInventorySlot(Recipient, FromSlot, ToSlot);
+}
+
+bool UBaseInventoryComponent::Server_TransferToInventorySlot_Validate(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot) {
+	return true;
+}
+
+void UBaseInventoryComponent::Server_TransferToInventory_Implementation(UBaseInventoryComponent* Recipient, int32 Slot) {
+	TransferToInventory(Recipient, Slot);
+}
+
+bool UBaseInventoryComponent::Server_TransferToInventory_Validate(UBaseInventoryComponent* Recipient, int32 Slot) {
+	return true;
+}
 
 
 void UBaseInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
