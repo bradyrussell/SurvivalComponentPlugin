@@ -83,6 +83,10 @@ void AShelterUnitBase::CheckStability() {
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Origin, Origin - FVector(0, 0, Extent.Z + 5), ECC_Visibility);
 
+	if(!bHit) { // try side as well as center
+		bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Origin - FVector(Extent.X - 5, 0, 0), Origin - FVector(Extent.X - 5, 0, Extent.Z + 5), ECC_Visibility);
+	}
+
 	if (bHit) {
 		AShelterUnitBase* SU = Cast<AShelterUnitBase>(OutHit.Actor);
 		if (SU) {

@@ -104,6 +104,7 @@ USTRUCT(BlueprintType)
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") UStaticMesh* ShelterUnitMesh;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") FString FitsSocket;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") bool bRequiresSocket;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Building Unit") bool bOffsetByExtent;
 	//upgrade path
 	// durability
 

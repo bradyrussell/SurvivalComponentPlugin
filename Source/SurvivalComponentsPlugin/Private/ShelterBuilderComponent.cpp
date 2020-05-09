@@ -73,6 +73,19 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 					}
 					//else {
 
+					//FVector Origin, Extent;
+					//BuildingHologramActor->GetActorBounds(false, Origin, Extent);
+
+					FVector Origin, Extent;
+
+					auto BB = ShelterInfo.ShelterUnitMesh->GetBoundingBox();
+					BB.GetCenterAndExtents(Origin, Extent);
+
+					if(ShelterInfo.bOffsetByExtent) {
+						HologramLocation += Extent * HitResult.Normal;
+					}
+					
+					Origin += HologramLocation;
 
 					if (IsValid(BuildingHologramActor)) {
 						BuildingHologramActor->SetActorLocation(HologramLocation);
@@ -88,10 +101,8 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 						for (int i = 0; i < BuildingHologramActor->Mesh->GetNumMaterials(); i++) { BuildingHologramActor->Mesh->SetMaterial(i, HologramMaterial_OK); }
 					}
-
-					FVector Origin, Extent;
-					BuildingHologramActor->GetActorBounds(false, Origin, Extent);
-
+					
+					
 					TArray<AActor*> Ignore, Overlaps;
 					
 					Ignore.Add(BuildingHologramActor);
@@ -124,10 +135,8 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 			UE_LOG(LogTemp, Warning, TEXT("ShelterBuilderComponent owner is not PlayerController, removing!"));
 			this->DestroyComponent();
 		}
-		UE_LOG(LogTemp, Warning, TEXT("building ON"));
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("building OFF"));
 		if (IsValid(BuildingHologramActor)) { BuildingHologramActor->Destroy(); }
 	}
 
@@ -181,8 +190,12 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 					FVector Origin, Extent;
 
 					auto BB = ShelterInfo.ShelterUnitMesh->GetBoundingBox();
-
 					BB.GetCenterAndExtents(Origin, Extent);
+
+					if(ShelterInfo.bOffsetByExtent) {
+						HologramLocation += Extent * HitResult.Normal;
+					}
+					
 					Origin += HologramLocation;
 
 					TArray<AActor*> Ignore, Overlaps;
