@@ -5,9 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
-
-#include <string>
-#include "ArchiveOverloads.h"
 #include "BuildingUnitBase.h"
 #include "ShelterUnitBase.generated.h"
 
@@ -20,7 +17,8 @@ class SURVIVALCOMPONENTSPLUGIN_API AShelterUnitBase : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AShelterUnitBase();
-	
+
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere) UStaticMeshComponent* ShelterMesh;
 	//UPROPERTY(BlueprintReadOnly, EditAnywhere) FName SU_Type;
 

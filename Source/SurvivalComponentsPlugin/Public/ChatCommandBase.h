@@ -25,7 +25,7 @@ USTRUCT(BlueprintType)
 	struct FChatCommandDefinition : public FTableRowBase {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") int32 MinimumRole;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") FString Permission;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") TSubclassOf<UChatCommandBase> Command;
 
 };

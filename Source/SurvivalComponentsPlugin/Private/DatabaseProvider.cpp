@@ -33,6 +33,24 @@ bool UDatabaseProvider::GetRecipeExists(UObject* WorldContextObject, FName item)
 	return DB->GetRowNames().Contains(item);
 }
 
+FChatCommandDefinition UDatabaseProvider::GetChatCommandDefinition(UObject* WorldContextObject, FName Command) {
+		FString context = FString();
+
+	const auto DB = IIDatabaseProvider::Execute_GetChatCommandDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	
+	return *DB->FindRow<FChatCommandDefinition>(Command, context);
+}
+
+
+bool UDatabaseProvider::GetChatCommandExists(UObject* WorldContextObject, FName Command) {
+		FString context = FString();
+
+	const auto DB = IIDatabaseProvider::Execute_GetChatCommandDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	
+	return DB->GetRowNames().Contains(Command);
+}
 
 FLootDefinition UDatabaseProvider::GetLootDefinition(UObject* WorldContextObject, FName LootTable) {
 	FString context = FString();

@@ -45,6 +45,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAllToInventory(UBaseInventoryComponent* Recipient);
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAmountToInventory(UBaseInventoryComponent* Recipient, int32 NumberOfItems);
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack ExchangeItem(int32 Slot, FItemStack NewItem);
 
 	UFUNCTION() virtual void OnRep_InventorySlots();
@@ -64,6 +66,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void ResizeInventory(int32 NewNumberSlots);
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void ClearInventory();
 
+	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetFirstFilledSlot();
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetFirstEmptySlot();
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetNumberEmptySlots();
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetNumberFilledSlots();
@@ -91,6 +94,7 @@ public:
 	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferAllToInventory(UBaseInventoryComponent* Recipient);
 
 	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot);
+
 	/* End of client to server functions */
 	
 	//// data lookups below

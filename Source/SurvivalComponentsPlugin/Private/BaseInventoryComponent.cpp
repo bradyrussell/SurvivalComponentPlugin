@@ -141,6 +141,27 @@ bool UBaseInventoryComponent::TransferAllToInventory(UBaseInventoryComponent* Re
 	return true;
 }
 
+bool UBaseInventoryComponent::TransferAmountToInventory(UBaseInventoryComponent* Recipient, int32 NumberOfItems) {
+	int32 NumLeftToSend = NumberOfItems;
+
+	while(NumLeftToSend > 0) {
+		auto Index = GetFirstFilledSlot();
+		if(!InventorySlots.IsValidIndex(Index)) return NumLeftToSend != NumberOfItems; // return true if we have moved any items
+
+		if(InventorySlots[Index].Amount <= NumLeftToSend) {
+			NumLeftToSend -= InventorySlots[Index].Amount;
+			TransferToInventory(Recipient, Index);
+		} else {
+			InventorySlots[Index].Amount -= NumLeftToSend;
+			Recipient->AddItem(FItemStack(InventorySlots[Index].Item, NumLeftToSend));
+			return true;
+		}
+		
+	}
+
+	return true;
+}
+
 FItemStack UBaseInventoryComponent::ExchangeItem(int32 Slot, FItemStack NewItem) {
 	const auto Old = InventorySlots[Slot];
 	InventorySlots[Slot] = NewItem;
@@ -187,6 +208,14 @@ void UBaseInventoryComponent::ResizeInventory(int32 NewNumberSlots) {
 void UBaseInventoryComponent::ClearInventory() {
 	InventorySlots.Reset();
 	InventorySlots.AddDefaulted(NumberSlots);
+}
+
+int32 UBaseInventoryComponent::GetFirstFilledSlot() {
+	for (int i = 0; i < InventorySlots.Num(); i++) {
+		if (!InventorySlots[i].isEmpty())
+			return i;
+	}
+	return -1;
 }
 
 int32 UBaseInventoryComponent::GetFirstEmptySlot() {

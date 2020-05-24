@@ -14,8 +14,10 @@ AShelterUnitBase::AShelterUnitBase() {
 	PrimaryActorTick.bCanEverTick = false;
 
 	ShelterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShelterMesh"));
+	//ShelterMesh->SetupAttachment(RootComponent);
 	SetRootComponent(ShelterMesh);
 
+	SetReplicates(true);
 	//SU_Type = FName(*this->GetName());
 }
 

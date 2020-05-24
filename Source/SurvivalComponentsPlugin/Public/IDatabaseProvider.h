@@ -26,6 +26,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetItemDefinitions();
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetRecipeDefinitions();
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetLootDefinitions();
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetBuildingDefinitions();
+	//UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetBuildingDefinitions();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetChatCommandDefinitions();
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Database Provider Interface")  UDataTable* GetShelterDefinitions();
 };
