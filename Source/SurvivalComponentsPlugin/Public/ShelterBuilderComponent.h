@@ -26,6 +26,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere) UMaterialInterface* HologramMaterial_OK;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere) UMaterialInterface* HologramMaterial_Invalid;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere) TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
+
+	// the player ID to use for ownership of built units
+	UPROPERTY(BlueprintReadWrite, EditAnywhere) FString OwnerID;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -45,6 +48,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly) void DestroyShelterUnit();
 
 	UFUNCTION(BlueprintImplementableEvent) void OnBuildFailed(FVector Origin, FVector Extent, FRotator Rotation);
+	UFUNCTION(BlueprintImplementableEvent) void OnDestroyFailed(AActor* ShelterUnit);
 
 public:
 	static bool BoxOverlapActors(UObject* WorldContextObject, const FVector BoxPos, const FQuat Rotation, FVector BoxExtent, const TArray<TEnumAsByte<EObjectTypeQuery> > & ObjectTypes, UClass* ActorClassFilter, const TArray<AActor*>& ActorsToIgnore, TArray<AActor*>& OutActors);

@@ -47,6 +47,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAmountToInventory(UBaseInventoryComponent* Recipient, int32 NumberOfItems);
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAmountFromSlotToInventory(UBaseInventoryComponent* Recipient, int32 Slot, int32 NumberOfItems);
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack ExchangeItem(int32 Slot, FItemStack NewItem);
 
 	UFUNCTION() virtual void OnRep_InventorySlots();

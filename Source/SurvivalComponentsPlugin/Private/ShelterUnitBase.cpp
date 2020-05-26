@@ -5,7 +5,7 @@
 #include "DatabaseProvider.h"
 #include "ShelterBuilderComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -125,4 +125,19 @@ void AShelterUnitBase::DestroyFromInstability() {
 			if (SU && SU != this) { SU->CheckStability(); }
 		} 
 	}
+}
+
+float AShelterUnitBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) {
+	Super::TakeDamage(DamageAmount,DamageEvent,EventInstigator,DamageCauser);
+	
+	Health -= DamageAmount;
+	if(Health <= 0) DestroyFromInstability();
+	return DamageAmount;
+}
+
+void AShelterUnitBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//DOREPLIFETIME(AShelterUnitBase, MaxHealth);
+	DOREPLIFETIME(AShelterUnitBase, Health);
+	DOREPLIFETIME(AShelterUnitBase, Creator);
 }

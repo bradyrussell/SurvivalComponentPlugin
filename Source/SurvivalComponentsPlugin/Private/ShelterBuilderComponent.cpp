@@ -53,7 +53,9 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 				const FVector Destination = Location + (Rotation.RotateVector(FVector::ForwardVector) * BuildRange);
 
 				FHitResult HitResult;
-				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility)) {
+				FCollisionQueryParams Param;
+				Param.AddIgnoredActor(Pawn);
+				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility, Param)) {
 					AShelterUnitBase* ParentShelterUnit = Cast<AShelterUnitBase>(HitResult.Actor);
 					auto ShelterInfo = UDatabaseProvider::GetShelterUnitDefinitionByIndex(GetOwner(), SelectedShelterUnitIndex); // should I cache these with a TMAP?
 
@@ -168,7 +170,9 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 				const FVector Destination = Location + (Rotation.RotateVector(FVector::ForwardVector) * BuildRange);
 
 				FHitResult HitResult;
-				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility)) {
+				FCollisionQueryParams Params1;
+				Params1.AddIgnoredActor(Pawn);
+				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility, Params1)) {
 					AShelterUnitBase* ParentShelterUnit = Cast<AShelterUnitBase>(HitResult.Actor);
 					auto ShelterInfo = UDatabaseProvider::GetShelterUnitDefinitionByIndex(GetOwner(), SelectedShelterUnitIndex); // should I cache these with a TMAP?
 
@@ -208,7 +212,8 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 						//spawn building 
 						FActorSpawnParameters Params;
 						Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-						GetWorld()->SpawnActor<AShelterUnitBase>(ShelterInfo.ShelterUnitClass, HologramLocation, HologramRotation, Params);
+						auto OutShelter = GetWorld()->SpawnActor<AShelterUnitBase>(ShelterInfo.ShelterUnitClass, HologramLocation, HologramRotation, Params);
+						OutShelter->Creator = OwnerID;
 					}
 					else {
 						//fail
@@ -230,8 +235,6 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 			this->DestroyComponent();
 		}
 	}
-	
-
 
 }
 
@@ -253,10 +256,17 @@ void UShelterBuilderComponent::DestroyShelterUnit() {
 				const FVector Destination = Location + (Rotation.RotateVector(FVector::ForwardVector) * BuildRange);
 
 				FHitResult HitResult;
-				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility)) {
+				FCollisionQueryParams Params;
+				Params.AddIgnoredActor(Pawn);
+				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility, Params)) {
 					AShelterUnitBase* ShelterUnit = Cast<AShelterUnitBase>(HitResult.Actor);
-					if(ShelterUnit)
-					ShelterUnit->DestroyFromInstability();
+					if(ShelterUnit){
+						if(ShelterUnit->Creator == "" || ShelterUnit->Creator == OwnerID){
+							ShelterUnit->DestroyFromInstability();
+						} else {
+							OnDestroyFailed(ShelterUnit);
+						}
+					}
 				}
 			}
 		}

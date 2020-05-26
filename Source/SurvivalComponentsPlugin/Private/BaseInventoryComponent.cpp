@@ -162,6 +162,18 @@ bool UBaseInventoryComponent::TransferAmountToInventory(UBaseInventoryComponent*
 	return true;
 }
 
+bool UBaseInventoryComponent::TransferAmountFromSlotToInventory(UBaseInventoryComponent* Recipient, int32 Slot, int32 NumberOfItems) {
+	if(!InventorySlots.IsValidIndex(Slot)) return false;
+	FItemStack InventorySlot = InventorySlots[Slot];
+	if(InventorySlot.isEmpty()) return false;
+	if(InventorySlot.Amount <= NumberOfItems) return TransferToInventory(Recipient, Slot);
+
+	InventorySlot.Amount -= NumberOfItems;
+
+	InventorySlot.Amount += Recipient->AddItem(FItemStack(InventorySlot.Item, NumberOfItems)).Amount; 
+	return true;
+}
+
 FItemStack UBaseInventoryComponent::ExchangeItem(int32 Slot, FItemStack NewItem) {
 	const auto Old = InventorySlots[Slot];
 	InventorySlots[Slot] = NewItem;
