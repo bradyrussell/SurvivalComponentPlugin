@@ -4,27 +4,31 @@
 #include "ItemEffectBase.h"
 #include "Engine/Texture2D.h"
 #include "Engine/DataTable.h"
+#include "GameplayEffect.h"
 #include "InventoryStructs.generated.h"
 
 USTRUCT(BlueprintType)
 	struct FItemStack {
 	GENERATED_BODY()
 	FItemStack()
-		: Amount(0), Item(NAME_None) { 
+		: Amount(0), Item(NAME_None), Data("") { 
 	}
 
-	FItemStack(FName Item, int32 Amount)
-		: Amount(Amount),
-		  Item(Item) {
+	/*FItemStack(FName Item, int32 Amount)
+		: Amount(Amount),Item(Item), Data("") {
+	}*/
+
+	FItemStack(FName Item, int32 Amount, FString Data)
+		: Amount(Amount),Item(Item), Data(Data) {
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack", SaveGame) int32 Amount;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Item Stack", SaveGame) FName Item;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, SaveGame, Category="Item Stack") int32 Amount;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, SaveGame, Category="Item Stack") FName Item;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, SaveGame, Category="Item Stack") FString Data;
 
 	/*UFUNCTION(BlueprintPure) not allowed*/
-	bool isEmpty() const { return Item == NAME_None || Amount == 0; }
-
+	bool IsEmpty() const { return Item == NAME_None || Amount == 0; }
+	bool HasData() const { return !Data.IsEmpty(); }
 	FORCEINLINE bool operator<(const FItemStack &Other) const
 	{
 		if(this->Item == Other.Item) return this->Amount > Other.Amount;
@@ -50,22 +54,26 @@ USTRUCT(BlueprintType)
 	struct FItemDefinition : public FTableRowBase {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") FText DisplayName;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") FText DisplayName;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") int32 MaxStack = 256;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") bool bIsConsumable; // same for consumable props?
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") TArray<uint8> ValidEquipmentSlots;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Consumable or Equipable") bool bIsConsumable; 
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Consumable or Equipable") TArray<uint8> ValidEquipmentSlots;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") int32 Value;
 	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") FText DisplayCategory;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") FText DisplayDescription;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") FText DisplayCategory;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") FText DisplayDescription;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") UTexture2D* DisplayIcon;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") UTexture2D* DisplayIcon;
 	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") TSubclassOf<UItemEffectBase> ItemEffect;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Item") float ItemEffectMagnitude = 1.0f;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") UStaticMesh* DisplayMesh;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") UMaterialInterface* MeshMaterialOverride;
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Consumable or Equipable") TSubclassOf<UGameplayEffect> ItemEffect;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Consumable or Equipable") USoundBase* ItemSound;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Consumable or Equipable") float ItemEffectMagnitude = 1.0f;
 
 };
 
@@ -128,6 +136,9 @@ USTRUCT(BlueprintType)
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") ECraftingType RecipeType = ECraftingType::CT_None;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") FText DisplayName;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") FText DisplayDescription;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Display") UTexture2D* DisplayIcon;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Recipe") float ProcessingDuration = 1.0f;
 

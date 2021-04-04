@@ -11,7 +11,7 @@ class AController;
 /**
  * 
  */
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) , Blueprintable)
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
 class SURVIVALCOMPONENTSPLUGIN_API UEntityInventoryComponent : public UBaseInventoryComponent
 {
 	GENERATED_BODY()
@@ -25,8 +25,8 @@ protected:
 public:
 	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory - Equipment") int32 NumberEquipmentSlots; // not  savegame because it should be const
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated, Category="Inventory - Equipment", SaveGame) TArray<FItemStack> EquipmentSlots;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated,SaveGame,  Category="Inventory - Equipment") int32 NumberEquipmentSlots;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Replicated,SaveGame,  Category="Inventory - Equipment") TArray<FItemStack> EquipmentSlots;
 
 	//this array is aligned with equipmentslots
 	UPROPERTY(BlueprintReadWrite) TArray<UEquipmentItemEffectBase*> CurrentEquipmentEffects;
@@ -35,12 +35,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly) bool EquipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly) bool UnequipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
+
 	UFUNCTION(BlueprintCallable) bool OnEquipmentHit(float Damage, AActor* DamageCause, AController* DamageInstigator, TSubclassOf<UDamageType>  DamageType, APawn* Wearer = nullptr, AController* WearerController = nullptr);
-
-	/* Client-to-server functions */
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_ConsumeItem(int32 Slot, APawn* Cause = nullptr, AController* Instigator = nullptr, float MagnitudeMultiplier = 1.0);
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_EquipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_UnequipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause = nullptr, AController* Instigator = nullptr);
-
-	
 };

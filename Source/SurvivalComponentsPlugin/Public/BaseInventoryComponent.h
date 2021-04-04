@@ -5,12 +5,13 @@
 #include "CoreMinimal.h"
 #include "InventoryStructs.h"
 #include "Components/ActorComponent.h"
+#include "ISavableComponent.h"
 #include "BaseInventoryComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryChanged, bool, bShouldRefresh);
 
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Blueprintable )
-	class SURVIVALCOMPONENTSPLUGIN_API UBaseInventoryComponent : public UActorComponent {
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
+	class SURVIVALCOMPONENTSPLUGIN_API UBaseInventoryComponent : public UActorComponent,public IISavableComponent {
 	GENERATED_BODY()
 
 public:
@@ -19,13 +20,22 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="Inventory - Events") FInventoryChanged InventoryChanged_Event;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory", SaveGame) int32 NumberSlots;
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, ReplicatedUsing=OnRep_InventorySlots, Category="Inventory", SaveGame) TArray<FItemStack> InventorySlots;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, SaveGame, Category="Inventory") int32 NumberSlots;
+
+	//todo fast tarray serializer
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, ReplicatedUsing=OnRep_InventorySlots, SaveGame, Category="Inventory") TArray<FItemStack> InventorySlots;
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 public:
+
+	// these only apply to transfer functions not add / remove
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated) bool bCanReceiveItems = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated) bool bCanGiveItems = true;
+	
+	UFUNCTION(BlueprintCallable) static bool AreItemsEqual(const FItemStack& A, const FItemStack& B, bool bMatchData = false);
+	UFUNCTION(BlueprintCallable) static bool DoItemsStack(const FItemStack& A, const FItemStack& B);
 
 	//adds an item stack to the inventory, returning any excess items
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack AddItem(FItemStack NewItem);
@@ -34,10 +44,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") TArray<FItemStack> AddItems(TArray<FItemStack> NewItems);
 
 	// removes the amount of the item from the inv, returning the items it could not remove
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack RemoveItem(FItemStack Item);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack RemoveItem(FItemStack Item, bool bMatchData = false);
 
 	// removes the amounts of the items from the inv, returning the items it could not remove
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") TArray<FItemStack> RemoveItems(TArray<FItemStack> Items);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") TArray<FItemStack> RemoveItems(TArray<FItemStack> Items, bool bMatchData = false);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferToInventory(UBaseInventoryComponent* Recipient, int32 Slot);
 
@@ -45,59 +55,49 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAllToInventory(UBaseInventoryComponent* Recipient);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAmountToInventory(UBaseInventoryComponent* Recipient, int32 NumberOfItems);
-
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") bool TransferAmountFromSlotToInventory(UBaseInventoryComponent* Recipient, int32 Slot, int32 NumberOfItems);
-
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") FItemStack ExchangeItem(int32 Slot, FItemStack NewItem);
 
 	UFUNCTION() virtual void OnRep_InventorySlots();
 	
 	// returns whether the inventory contains at least the given Amount of Item
-	UFUNCTION(BlueprintCallable, Category="Inventory") bool hasItem(FItemStack Item);
+	UFUNCTION(BlueprintCallable, Category="Inventory") bool HasItem(FItemStack Item, bool bMatchData = false);
 
 	//returns whether the inventory contains at least the given Amounts of Items
-	UFUNCTION(BlueprintCallable, Category="Inventory") bool hasItems(TArray<FItemStack> Items);
+	UFUNCTION(BlueprintCallable, Category="Inventory") bool HasItems(TArray<FItemStack> Items, bool bMatchData = false);
 
 	//returns a copy of the current state of the inventory
 	UFUNCTION(BlueprintCallable, Category="Inventory") TArray<FItemStack> GetInventorySnapshot() const;
 
 	// returns a reference to the inventory array. do not modify it
-	UFUNCTION(BlueprintCallable, Category="Inventory") void GetInventoryReference(TArray<FItemStack>& OutInventoryRef) const;
+	UFUNCTION(BlueprintCallable, Category="Inventory") void GetInventoryReference(TArray<FItemStack>& InventoryRef) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void ResizeInventory(int32 NewNumberSlots);
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void ClearInventory();
 
-	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetFirstFilledSlot();
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetFirstEmptySlot();
+	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetFirstFilledSlot();
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetNumberEmptySlots();
 	UFUNCTION(BlueprintPure, Category="Inventory") int32 GetNumberFilledSlots();
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void SwapSlots(int32 FirstSlot, int32 SecondSlot);
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory") void SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot);
 
-	// returns true if all items are empty
-	UFUNCTION(BlueprintPure, Category="Inventory") static bool areAllEmpty(TArray<FItemStack> Items);
-
-	UFUNCTION(BlueprintPure, Category="Inventory") static bool isEmpty(FItemStack Item);
+	// need this for blueprint access
+	UFUNCTION(BlueprintPure, Category="Inventory") static bool IsEmpty(FItemStack Item);
+	UFUNCTION(BlueprintPure, Category="Inventory") static bool AreAllEmpty(TArray<FItemStack> Items);
 
 	UFUNCTION(BlueprintPure, Category="Inventory") static FString ToString(FItemStack Item);
 	UFUNCTION(BlueprintPure, Category="Inventory") static FString ToStrings(TArray<FItemStack> Items);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory") void SortInventory();
 
-	/* Client to Server functions - useful for UI */
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_SortInventory();
+
+	//// RPC ////
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation) void Server_SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot);
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation) void Server_TransferToInventorySlot(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot);
 	
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferToInventory(UBaseInventoryComponent* Recipient, int32 Slot);
-
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferToInventorySlot(UBaseInventoryComponent* Recipient, int32 FromSlot, int32 ToSlot);
-
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_TransferAllToInventory(UBaseInventoryComponent* Recipient);
-
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable, Category="Inventory") void Server_SwapOrCombineSlots(int32 FirstSlot, int32 SecondSlot);
-
-	/* End of client to server functions */
+	/////////////////////
 	
 	//// data lookups below
 

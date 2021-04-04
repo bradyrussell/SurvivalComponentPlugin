@@ -14,13 +14,11 @@ class SURVIVALCOMPONENTSPLUGIN_API ABuildingHologram : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABuildingHologram();
-	UStaticMeshComponent* Mesh;
+	UPROPERTY() UStaticMeshComponent* Mesh;
+	UPROPERTY() UMaterialInterface* Material;
+
+	void SetMaterial(UMaterialInterface* aMaterial);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-
-	
-
 };

@@ -5,7 +5,7 @@
 #include "DatabaseProvider.h"
 #include "ShelterBuilderComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
+
 
 
 // Sets default values
@@ -14,10 +14,8 @@ AShelterUnitBase::AShelterUnitBase() {
 	PrimaryActorTick.bCanEverTick = false;
 
 	ShelterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShelterMesh"));
-	//ShelterMesh->SetupAttachment(RootComponent);
 	SetRootComponent(ShelterMesh);
 
-	SetReplicates(true);
 	//SU_Type = FName(*this->GetName());
 }
 
@@ -85,10 +83,6 @@ void AShelterUnitBase::CheckStability() {
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Origin, Origin - FVector(0, 0, Extent.Z + 5), ECC_Visibility);
 
-	if(!bHit) { // try side as well as center
-		bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Origin - FVector(Extent.X - 5, 0, 0), Origin - FVector(Extent.X - 5, 0, Extent.Z + 5), ECC_Visibility);
-	}
-
 	if (bHit) {
 		AShelterUnitBase* SU = Cast<AShelterUnitBase>(OutHit.Actor);
 		if (SU) {
@@ -125,19 +119,4 @@ void AShelterUnitBase::DestroyFromInstability() {
 			if (SU && SU != this) { SU->CheckStability(); }
 		} 
 	}
-}
-
-float AShelterUnitBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) {
-	Super::TakeDamage(DamageAmount,DamageEvent,EventInstigator,DamageCauser);
-	
-	Health -= DamageAmount;
-	if(Health <= 0) DestroyFromInstability();
-	return DamageAmount;
-}
-
-void AShelterUnitBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	//DOREPLIFETIME(AShelterUnitBase, MaxHealth);
-	DOREPLIFETIME(AShelterUnitBase, Health);
-	DOREPLIFETIME(AShelterUnitBase, Creator);
 }

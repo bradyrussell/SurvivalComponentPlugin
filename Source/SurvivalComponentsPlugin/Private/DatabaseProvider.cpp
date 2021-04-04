@@ -4,6 +4,7 @@
 #include "InventoryStructs.h"
 #include "Kismet/GameplayStatics.h"
 #include "IDatabaseProvider.h"
+#include "BuildSystemStructs.h"
 
 
 FItemDefinition UDatabaseProvider::GetItemDefinition(UObject* WorldContextObject, FName item) {
@@ -11,7 +12,7 @@ FItemDefinition UDatabaseProvider::GetItemDefinition(UObject* WorldContextObject
 
 	const auto ItemDB = IIDatabaseProvider::Execute_GetItemDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
 	check(ItemDB);
-	
+	if(!DoesItemExist(WorldContextObject, item)) return FItemDefinition();
 	return *ItemDB->FindRow<FItemDefinition>(item, context);
 }
 
@@ -24,34 +25,6 @@ FProcessingRecipe UDatabaseProvider::GetRecipeDefinition(UObject* WorldContextOb
 	return *DB->FindRow<FProcessingRecipe>(item, context);
 }
 
-bool UDatabaseProvider::GetRecipeExists(UObject* WorldContextObject, FName item) {
-	FString context = FString();
-
-	const auto DB = IIDatabaseProvider::Execute_GetRecipeDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-	
-	return DB->GetRowNames().Contains(item);
-}
-
-FChatCommandDefinition UDatabaseProvider::GetChatCommandDefinition(UObject* WorldContextObject, FName Command) {
-		FString context = FString();
-
-	const auto DB = IIDatabaseProvider::Execute_GetChatCommandDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-	
-	return *DB->FindRow<FChatCommandDefinition>(Command, context);
-}
-
-
-bool UDatabaseProvider::GetChatCommandExists(UObject* WorldContextObject, FName Command) {
-		FString context = FString();
-
-	const auto DB = IIDatabaseProvider::Execute_GetChatCommandDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-	
-	return DB->GetRowNames().Contains(Command);
-}
-
 FLootDefinition UDatabaseProvider::GetLootDefinition(UObject* WorldContextObject, FName LootTable) {
 	FString context = FString();
 
@@ -61,15 +34,56 @@ FLootDefinition UDatabaseProvider::GetLootDefinition(UObject* WorldContextObject
 	return *DB->FindRow<FLootDefinition>(LootTable, context);
 }
 
-TArray<FItemStack> UDatabaseProvider::CalculateLootDrop(UObject* WorldContextObject, FName LootTable) {
-	auto LootDef = GetLootDefinition(WorldContextObject, LootTable);
+FShelterUnitDefinition UDatabaseProvider::GetShelterUnitDefinition(UObject* WorldContextObject, FName ShelterUnit) {
+	FString context = FString();
 
+	const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	
+	return *DB->FindRow<FShelterUnitDefinition>(ShelterUnit, context);
+}
+
+bool UDatabaseProvider::DoesItemExist(UObject* WorldContextObject, FName item) {
+	FString context = FString();
+
+	const auto ItemDB = IIDatabaseProvider::Execute_GetItemDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(ItemDB);
+	
+	return ItemDB->GetRowNames().Contains(item);
+}
+
+FShelterUnitDefinition UDatabaseProvider::GetShelterUnitDefinitionByIndex(UObject* WorldContextObject, int32 Index) {
+	    const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+
+	const FString context;
+
+	TArray<FShelterUnitDefinition*> out;
+	
+	DB->GetAllRows<FShelterUnitDefinition>(context, out);
+
+	check(out[Index]);
+	
+	return *out[Index];
+}
+
+TArray<FItemStack> UDatabaseProvider::CalculateLootDrop(UObject* WorldContextObject, FName LootTable) {
+	if(LootTable == NAME_None) return TArray<FItemStack>();
+	const auto DB = IIDatabaseProvider::Execute_GetLootDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+	check(DB);
+	FLootDefinition* LootDefinition = DB->FindRow<FLootDefinition>(LootTable, TEXT("UDatabaseProvider::CalculateLootDrop"));
+
+	if(!LootDefinition) {
+		UE_LOG(LogTemp,Warning,TEXT("No loot definition found for table name: %s"), *LootTable.ToString());
+		return TArray<FItemStack>();
+	}
+	
 	TArray<FItemStack> Loot;
-	Loot.Append(LootDef.Guarantees);
+	Loot.Append(LootDefinition->Guarantees);
 
 	float roll = FMath::FRandRange(0.0f,1.0f);
 
-	for (auto&elem:LootDef.Possibilities) {
+	for (auto&elem:LootDefinition->Possibilities) {
 		roll -= elem.ChancePercent;
 		if(roll <= 0.f) { // this is the rolled drop
 			Loot.Append(elem.Items);
@@ -106,7 +120,7 @@ TMap<FName, FProcessingRecipe> UDatabaseProvider::GetAllRecipesForCraftingCompon
 
 	for(auto &elem:DB->GetRowMap()) {
 		FProcessingRecipe* recipe = reinterpret_cast<FProcessingRecipe*>(elem.Value);
-		if(recipe->RecipeType == Inventory->Type && Inventory->hasItems(recipe->InputItems)) output.Emplace(elem.Key, *recipe);
+		if(recipe->RecipeType == Inventory->Type && Inventory->HasItems(recipe->InputItems)) output.Emplace(elem.Key, *recipe);
 	}//todo optimize
 
 	return output; 
@@ -152,34 +166,34 @@ FName UDatabaseProvider::IndexToRecipe(UObject* WorldContextObject, int32 Index)
 	return Names[Index-1];
 }
 
-/*int32 UDatabaseProvider::BuildingUnitToIndex(UObject* WorldContextObject, TSubclassOf<ABuildingUnitBase> BuildingUnitClass) {
-	const auto DB = IIDatabaseProvider::Execute_GetBuildingDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-	const FString context;
-	
-	auto keys = DB->GetRowNames();
-
-	int32 outIndex = -1;
-	
-	DB->ForeachRow<FBuildingUnitDefinition>(context, [keys, BuildingUnitClass, &outIndex](const FName& Key, const FBuildingUnitDefinition& Value) {
-		if(Value.BuildingUnitClass == BuildingUnitClass) outIndex = keys.Find(Key);
-	});
-
-	return outIndex;
-}
-
-TSubclassOf<ABuildingUnitBase> UDatabaseProvider::IndexToBuildingUnit(UObject* WorldContextObject, int32 Index) {
-		const auto DB = IIDatabaseProvider::Execute_GetBuildingDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-
-	const FString context;
-
-	TArray<FBuildingUnitDefinition*> out;
-	
-	DB->GetAllRows<FBuildingUnitDefinition>(context, out);
-
-	return out[Index]->BuildingUnitClass;
-}*/
+// int32 UDatabaseProvider::BuildingUnitToIndex(UObject* WorldContextObject, TSubclassOf<ABuildingUnitBase> BuildingUnitClass) {
+// 	const auto DB = IIDatabaseProvider::Execute_GetBuildingDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+// 	check(DB);
+// 	const FString context;
+// 	
+// 	auto keys = DB->GetRowNames();
+//
+// 	int32 outIndex = -1;
+// 	
+// 	DB->ForeachRow<FBuildingUnitDefinition>(context, [keys, BuildingUnitClass, &outIndex](const FName& Key, const FBuildingUnitDefinition& Value) {
+// 		if(Value.BuildingUnitClass == BuildingUnitClass) outIndex = keys.Find(Key);
+// 	});
+//
+// 	return outIndex;
+// }
+//
+// TSubclassOf<ABuildingUnitBase> UDatabaseProvider::IndexToBuildingUnit(UObject* WorldContextObject, int32 Index) {
+// 		const auto DB = IIDatabaseProvider::Execute_GetBuildingDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
+// 	check(DB);
+//
+// 	const FString context;
+//
+// 	TArray<FBuildingUnitDefinition*> out;
+// 	
+// 	DB->GetAllRows<FBuildingUnitDefinition>(context, out);
+//
+// 	return out[Index]->BuildingUnitClass;
+// }
 
 int32 UDatabaseProvider::ShelterUnitToIndex(UObject* WorldContextObject, TSubclassOf<AShelterUnitBase> ShelterUnitClass) {
 	const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
@@ -208,28 +222,4 @@ TSubclassOf<AShelterUnitBase> UDatabaseProvider::IndexToShelterUnit(UObject* Wor
 	DB->GetAllRows<FShelterUnitDefinition>(context, out);
 
 	return out[Index]->ShelterUnitClass;
-}
-
-FShelterUnitDefinition UDatabaseProvider::GetShelterUnitDefinition(UObject* WorldContextObject, FName ShelterUnit) {
-	FString context = FString();
-
-	const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-	
-	return *DB->FindRow<FShelterUnitDefinition>(ShelterUnit, context);
-}
-
-FShelterUnitDefinition UDatabaseProvider::GetShelterUnitDefinitionByIndex(UObject* WorldContextObject, int32 Index) {
-	    const auto DB = IIDatabaseProvider::Execute_GetShelterDefinitions(UGameplayStatics::GetGameInstance(WorldContextObject));
-	check(DB);
-
-	const FString context;
-
-	TArray<FShelterUnitDefinition*> out;
-	
-	DB->GetAllRows<FShelterUnitDefinition>(context, out);
-
-	check(out[Index]);
-	
-	return *out[Index];
 }

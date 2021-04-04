@@ -51,6 +51,9 @@ bool USurvivalComponent::Heal(float Amount) {
 
 
 bool USurvivalComponent::TakeDamage(float Damage, AActor* Cause, AController* Instigator, TSubclassOf<UDamageType> DamageType, bool bIgnoreArmor, const FText Weapon) {
+	if(GetOwnerRole() != ENetRole::ROLE_Authority) return true;
+	if(!bCanTakeDamage) return true;
+	
 	float RealDamage = bIgnoreArmor ? Damage : Damage - (Damage * ArmorPercentage);
 
 	Health -= FMath::Max(0.f, RealDamage); // no negative damage allowed

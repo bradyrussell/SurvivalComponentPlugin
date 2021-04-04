@@ -8,10 +8,9 @@
 #include "InventoryStructs.h"
 #include "BaseInventoryComponent.h"
 #include "CraftingInventoryComponent.h"
-#include "BuildSystemStructs.h"
 #include "BuildingUnitBase.h"
 #include "ShelterUnitBase.h"
-#include "ChatCommandBase.h"
+#include "BuildSystemStructs.h"
 #include "DatabaseProvider.generated.h"
 
 /**
@@ -22,15 +21,15 @@ class SURVIVALCOMPONENTSPLUGIN_API UDatabaseProvider : public UBlueprintFunction
 	GENERATED_BODY()
 public:
 	//UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static int32 GetMaxStackForItem(UObject* WorldContextObject, FName item);
-
+	UFUNCTION(BlueprintPure, Category="Inventory Data"/*, meta = (WorldContext = "WorldContextObject")*/) static bool DoesItemExist(UObject* WorldContextObject, FName item);
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static FItemDefinition GetItemDefinition(UObject* WorldContextObject, FName item);
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static FProcessingRecipe GetRecipeDefinition(UObject* WorldContextObject, FName item);
-	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static bool GetRecipeExists(UObject* WorldContextObject, FName item);
 
-	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static FChatCommandDefinition GetChatCommandDefinition(UObject* WorldContextObject, FName Command);
-	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static bool GetChatCommandExists(UObject* WorldContextObject, FName Command);
-	
 	UFUNCTION(BlueprintPure, Category="Inventory", meta = (WorldContext = "WorldContextObject")) static FLootDefinition GetLootDefinition(UObject* WorldContextObject, FName LootTable);
+
+	UFUNCTION(BlueprintPure, Category="Shelter Unit", meta = (WorldContext = "WorldContextObject")) static FShelterUnitDefinition GetShelterUnitDefinition(UObject* WorldContextObject, FName ShelterUnit);
+	UFUNCTION(BlueprintPure, Category="Shelter Unit", meta = (WorldContext = "WorldContextObject")) static FShelterUnitDefinition GetShelterUnitDefinitionByIndex(UObject* WorldContextObject, int32 Index);
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory", meta = (WorldContext = "WorldContextObject")) static TArray<FItemStack> CalculateLootDrop(UObject* WorldContextObject, FName LootTable);
 
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static TMap<FName, FProcessingRecipe> GetAllRecipesOfType(
@@ -41,17 +40,11 @@ public:
 		UObject* WorldContextObject,
 		UCraftingInventoryComponent* Inventory);
 
-	UFUNCTION(BlueprintPure, Category="Shelter Unit", meta = (WorldContext = "WorldContextObject")) static FShelterUnitDefinition GetShelterUnitDefinition(UObject* WorldContextObject, FName ShelterUnit);
-	UFUNCTION(BlueprintPure, Category="Shelter Unit", meta = (WorldContext = "WorldContextObject")) static FShelterUnitDefinition GetShelterUnitDefinitionByIndex(UObject* WorldContextObject, int32 Index);
-
-	
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static int32 ItemToIndex(UObject* WorldContextObject, FName Item);
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static FName IndexToItem(UObject* WorldContextObject, int32 Index);
 
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static int32 RecipeToIndex(UObject* WorldContextObject, FName Recipe);
 	UFUNCTION(BlueprintPure, Category="Inventory Data", meta = (WorldContext = "WorldContextObject")) static FName IndexToRecipe(UObject* WorldContextObject, int32 Index);
-
-	
 
 	//UFUNCTION(BlueprintPure, Category="Building Unit Data", meta = (WorldContext = "WorldContextObject")) static int32 BuildingUnitToIndex(UObject* WorldContextObject, TSubclassOf<ABuildingUnitBase> BuildingUnitClass);
 	//UFUNCTION(BlueprintPure, Category="Building Unit Data", meta = (WorldContext = "WorldContextObject")) static TSubclassOf<ABuildingUnitBase> IndexToBuildingUnit(UObject* WorldContextObject, int32 Index);

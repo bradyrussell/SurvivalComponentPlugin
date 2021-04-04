@@ -7,22 +7,25 @@
 #include "Engine/DataTable.h"
 #include "CraftingInventoryComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBeginProcessingRecipe, FProcessingRecipe, Recipe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBeginProcessingRecipe, FName, Recipe);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFinishProcessingRecipe, FProcessingRecipe, Recipe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFinishProcessingRecipe, FName, Recipe);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFailedProcessingRecipe, FProcessingRecipe, Recipe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFailedProcessingRecipe, FName, Recipe);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FQueuedProcessingRecipe, FProcessingRecipe, Recipe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FQueuedProcessingRecipe, FName, Recipe);
 
 /**
  * 
  */
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) , Blueprintable)
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
 	class SURVIVALCOMPONENTSPLUGIN_API UCraftingInventoryComponent : public UContainerInventoryComponent {
 	GENERATED_BODY()
 public:
 
+	UDataTable* GetRecipesDataTable() const;
+	FProcessingRecipe* GetRecipeDefinition(FName Recipe) const;
+	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated, Category="Inventory - Crafting") ECraftingType Type;
 
 	UPROPERTY(BlueprintAssignable, Category="Inventory - Crafting Events") FBeginProcessingRecipe BeginProcessingRecipe_Event;
@@ -30,40 +33,35 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Inventory - Crafting Events") FFailedProcessingRecipe FailedProcessingRecipe_Event;
 	UPROPERTY(BlueprintAssignable, Category="Inventory - Crafting Events") FQueuedProcessingRecipe QueuedProcessingRecipe_Event;
 
-	TQueue<FProcessingRecipe> ProcessingQueue;
+	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Replicated, Category="Inventory - Crafting") TArray<FName> ProcessingQueue;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting", SaveGame) float Fuel = 0.f;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting", SaveGame) float MaximumFuel = 10000.f;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, SaveGame, Category="Inventory - Crafting") float Fuel = 0.f;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Crafting") float MaximumFuel = 10000.f;
 
 	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Replicated, Category="Inventory - Crafting") bool bIsCurrentlyProcessing = false;
 
 	UPROPERTY(BlueprintReadWrite, Category="Inventory - Crafting") FTimerHandle CurrentJob_Timer;
-	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Replicated, Category="Inventory - Crafting") FProcessingRecipe CurrentJob_Recipe;
+	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Replicated, Category="Inventory - Crafting") FName CurrentJob;
 
-	//  replicate the expected finish time of the recipe for client side visualization
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated) FDateTime Client_ExpectedFinish;
-
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") bool QueueRecipe(FProcessingRecipe InRecipe);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") bool QueueRecipe(FName InRecipe);
 
 	// will begin working through the queued recipes
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") bool BeginProcessing();
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") FProcessingRecipe PeekNextRecipe() const;
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") FName PeekNextRecipe() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") bool AddFuel(float Amount);
 
+	UFUNCTION(BlueprintCallable) TArray<FName> GetAvailableRecipes();
 private:
 	//called when a recipe finishes. 
 	void EndProcessing();
-	
-	UFUNCTION(NetMulticast, Reliable) void Multi_BeginProcessingRecipe(FProcessingRecipe Recipe);
-	UFUNCTION(NetMulticast, Reliable) void Multi_FinishProcessingRecipe(FProcessingRecipe Recipe);
-	UFUNCTION(NetMulticast, Reliable) void Multi_FailedProcessingRecipe(FProcessingRecipe Recipe);
-	UFUNCTION(NetMulticast, Reliable) void Multi_QueuedProcessingRecipe(FProcessingRecipe Recipe);
 
-	// // keeps the client timer in sync with the server timer
-	// UFUNCTION(Client, Reliable) void Client_SetTimer(float duration);
-	// void Client_TimerFinished(); // todo find out how to do a null timer
+	UFUNCTION(NetMulticast, Reliable) void Multi_BeginProcessingRecipe(FName Recipe);
+	UFUNCTION(NetMulticast, Reliable) void Multi_FinishProcessingRecipe(FName Recipe);
+	UFUNCTION(NetMulticast, Reliable) void Multi_FailedProcessingRecipe(FName Recipe);
+	UFUNCTION(NetMulticast, Reliable) void Multi_QueuedProcessingRecipe(FName Recipe);
+
 public:
 	//interrupt crafting, does not clear queue
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") void CancelProcessing();
@@ -73,15 +71,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") void CancelAndClearQueue();
 
-	UFUNCTION(BlueprintCallable, Category="Inventory - Crafting") bool isCurrentlyProcessing() const;
+	UFUNCTION(BlueprintCallable, Category="Inventory - Crafting") bool IsCurrentlyProcessing() const;
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") float GetRemainingTime() const;
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Crafting") float GetElapsedTime() const;
-
-
-	/* Client-to-server functions */
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_CancelProcessing();
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_ClearQueue();
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_CancelAndClearQueue();
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_QueueRecipe(FName RecipeName);
-	UFUNCTION(BlueprintCallable, Server, WithValidation, Reliable) void Server_BeginProcessing();
 };

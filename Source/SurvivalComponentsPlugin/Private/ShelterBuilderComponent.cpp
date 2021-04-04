@@ -10,7 +10,6 @@
 #include "DatabaseProvider.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
-#include "ShelterUnitBase.h"
 
 
 // Sets default values for this component's properties
@@ -53,9 +52,7 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 				const FVector Destination = Location + (Rotation.RotateVector(FVector::ForwardVector) * BuildRange);
 
 				FHitResult HitResult;
-				FCollisionQueryParams Param;
-				Param.AddIgnoredActor(Pawn);
-				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility, Param)) {
+				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility)) {
 					AShelterUnitBase* ParentShelterUnit = Cast<AShelterUnitBase>(HitResult.Actor);
 					auto ShelterInfo = UDatabaseProvider::GetShelterUnitDefinitionByIndex(GetOwner(), SelectedShelterUnitIndex); // should I cache these with a TMAP?
 
@@ -75,19 +72,6 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 					}
 					//else {
 
-					//FVector Origin, Extent;
-					//BuildingHologramActor->GetActorBounds(false, Origin, Extent);
-
-					FVector Origin, Extent;
-
-					auto BB = ShelterInfo.ShelterUnitMesh->GetBoundingBox();
-					BB.GetCenterAndExtents(Origin, Extent);
-
-					if(ShelterInfo.bOffsetByExtent) {
-						HologramLocation += Extent * HitResult.Normal;
-					}
-					
-					Origin += HologramLocation;
 
 					if (IsValid(BuildingHologramActor)) {
 						BuildingHologramActor->SetActorLocation(HologramLocation);
@@ -103,8 +87,10 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 						for (int i = 0; i < BuildingHologramActor->Mesh->GetNumMaterials(); i++) { BuildingHologramActor->Mesh->SetMaterial(i, HologramMaterial_OK); }
 					}
-					
-					
+
+					FVector Origin, Extent;
+					BuildingHologramActor->GetActorBounds(false, Origin, Extent);
+
 					TArray<AActor*> Ignore, Overlaps;
 					
 					Ignore.Add(BuildingHologramActor);
@@ -138,9 +124,7 @@ void UShelterBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 			this->DestroyComponent();
 		}
 	}
-	else {
-		if (IsValid(BuildingHologramActor)) { BuildingHologramActor->Destroy(); }
-	}
+	else { if (IsValid(BuildingHologramActor)) { BuildingHologramActor->Destroy(); } }
 
 }
 
@@ -170,9 +154,7 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 				const FVector Destination = Location + (Rotation.RotateVector(FVector::ForwardVector) * BuildRange);
 
 				FHitResult HitResult;
-				FCollisionQueryParams Params1;
-				Params1.AddIgnoredActor(Pawn);
-				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility, Params1)) {
+				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility)) {
 					AShelterUnitBase* ParentShelterUnit = Cast<AShelterUnitBase>(HitResult.Actor);
 					auto ShelterInfo = UDatabaseProvider::GetShelterUnitDefinitionByIndex(GetOwner(), SelectedShelterUnitIndex); // should I cache these with a TMAP?
 
@@ -194,12 +176,8 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 					FVector Origin, Extent;
 
 					auto BB = ShelterInfo.ShelterUnitMesh->GetBoundingBox();
-					BB.GetCenterAndExtents(Origin, Extent);
 
-					if(ShelterInfo.bOffsetByExtent) {
-						HologramLocation += Extent * HitResult.Normal;
-					}
-					
+					BB.GetCenterAndExtents(Origin, Extent);
 					Origin += HologramLocation;
 
 					TArray<AActor*> Ignore, Overlaps;
@@ -212,8 +190,7 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 						//spawn building 
 						FActorSpawnParameters Params;
 						Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-						auto OutShelter = GetWorld()->SpawnActor<AShelterUnitBase>(ShelterInfo.ShelterUnitClass, HologramLocation, HologramRotation, Params);
-						OutShelter->Creator = OwnerID;
+						GetWorld()->SpawnActor<AShelterUnitBase>(ShelterInfo.ShelterUnitClass, HologramLocation, HologramRotation, Params);
 					}
 					else {
 						//fail
@@ -235,6 +212,8 @@ void UShelterBuilderComponent::BuildShelterUnit() {
 			this->DestroyComponent();
 		}
 	}
+	
+
 
 }
 
@@ -256,17 +235,10 @@ void UShelterBuilderComponent::DestroyShelterUnit() {
 				const FVector Destination = Location + (Rotation.RotateVector(FVector::ForwardVector) * BuildRange);
 
 				FHitResult HitResult;
-				FCollisionQueryParams Params;
-				Params.AddIgnoredActor(Pawn);
-				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility, Params)) {
+				if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Destination, ECC_Visibility)) {
 					AShelterUnitBase* ShelterUnit = Cast<AShelterUnitBase>(HitResult.Actor);
-					if(ShelterUnit){
-						if(ShelterUnit->Creator == "" || ShelterUnit->Creator == OwnerID){
-							ShelterUnit->DestroyFromInstability();
-						} else {
-							OnDestroyFailed(ShelterUnit);
-						}
-					}
+					if(ShelterUnit)
+					ShelterUnit->DestroyFromInstability();
 				}
 			}
 		}
@@ -275,9 +247,8 @@ void UShelterBuilderComponent::DestroyShelterUnit() {
 
 
 void UShelterBuilderComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UShelterBuilderComponent, SelectedShelterUnitIndex);
-	DOREPLIFETIME(UShelterBuilderComponent, bIsBuilding);
+
 }
 
 

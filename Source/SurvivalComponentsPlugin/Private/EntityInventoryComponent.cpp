@@ -28,7 +28,7 @@ void UEntityInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 bool UEntityInventoryComponent::ConsumeItem(int32 Slot, APawn* Cause, AController* Instigator, float MagnitudeMultiplier) {
 	const FItemStack Item = InventorySlots[Slot];
-	if (UBaseInventoryComponent::isEmpty(Item))
+	if (Item.IsEmpty())
 		return false;
 
 	const auto ItemDef = UDatabaseProvider::GetItemDefinition(this, Item.Item);
@@ -53,10 +53,10 @@ bool UEntityInventoryComponent::ConsumeItem(int32 Slot, APawn* Cause, AControlle
 }
 
 bool UEntityInventoryComponent::EquipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
-	if(!EquipmentSlots[EquipmentSlot].isEmpty()) return false;
+	if(!EquipmentSlots[EquipmentSlot].IsEmpty()) return false;
 	
 	const FItemStack Item = InventorySlots[Slot];
-	if (UBaseInventoryComponent::isEmpty(Item)) return false;
+	if (Item.IsEmpty()) return false;
 
 	const auto ItemDef = UDatabaseProvider::GetItemDefinition(this, Item.Item);
 
@@ -75,7 +75,7 @@ bool UEntityInventoryComponent::EquipItem(int32 Slot, uint8 EquipmentSlot, APawn
 }
 
 bool UEntityInventoryComponent::UnequipItem(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
-	if(EquipmentSlots[EquipmentSlot].isEmpty() || !UBaseInventoryComponent::isEmpty(InventorySlots[Slot])) return false;
+	if(EquipmentSlots[EquipmentSlot].IsEmpty() || !InventorySlots[Slot].IsEmpty()) return false;
 
 	const auto Item = EquipmentSlots[EquipmentSlot];
 	EquipmentSlots[EquipmentSlot] = FItemStack();
@@ -105,34 +105,8 @@ bool UEntityInventoryComponent::OnEquipmentHit(float Damage,
 	return true;
 }
 
-void UEntityInventoryComponent::Server_UnequipItem_Implementation(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
-	UnequipItem(Slot,EquipmentSlot,Cause,Instigator);
-}
-
-bool UEntityInventoryComponent::Server_UnequipItem_Validate(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
-		return true; //todo
-}
-
-void UEntityInventoryComponent::Server_EquipItem_Implementation(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
-	EquipItem(Slot,EquipmentSlot,Cause,Instigator);
-}
-
-bool UEntityInventoryComponent::Server_EquipItem_Validate(int32 Slot, uint8 EquipmentSlot, APawn* Cause, AController* Instigator) {
-		return true; //todo
-}
-
-void UEntityInventoryComponent::Server_ConsumeItem_Implementation(int32 Slot, APawn* Cause, AController* Instigator, float MagnitudeMultiplier) {
-	ConsumeItem(Slot,Cause, Instigator, MagnitudeMultiplier);
-}
-
-bool UEntityInventoryComponent::Server_ConsumeItem_Validate(int32 Slot, APawn* Cause, AController* Instigator, float MagnitudeMultiplier) {
-	return true; //todo
-}
-
 void UEntityInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-
 	DOREPLIFETIME(UEntityInventoryComponent, NumberEquipmentSlots);
 	DOREPLIFETIME(UEntityInventoryComponent, EquipmentSlots);
 }

@@ -20,7 +20,8 @@ public:
 	USurvivalComponent();
 
 	UPROPERTY(BlueprintAssignable, Category="Survival - On Death Event") FOnDeath OnDeath_Event;
-
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere) bool bCanTakeDamage = true;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated) float MaxHealth;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated) float Health;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated) float HealthRegenerationPerSecond;

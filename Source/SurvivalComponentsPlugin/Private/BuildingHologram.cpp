@@ -13,6 +13,14 @@ ABuildingHologram::ABuildingHologram()
 	Mesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
+void ABuildingHologram::SetMaterial(UMaterialInterface* aMaterial) {
+	if(aMaterial != Material) {
+		for (int i = 0; i < Mesh->GetNumMaterials(); ++i) {
+			Mesh->SetMaterial(i, aMaterial);
+		}
+	}
+}
+
 // Called when the game starts or when spawned
 void ABuildingHologram::BeginPlay()
 {

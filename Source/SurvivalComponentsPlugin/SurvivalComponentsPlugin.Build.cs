@@ -28,7 +28,8 @@ public class SurvivalComponentsPlugin : ModuleRules
 				"Core",
                 "CoreUObject",
 				"Projects",
-                "Engine"
+                "Engine",
+                "MCTPlugin", "GameplayAbilities", "GameplayTags", "GameplayTasks"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

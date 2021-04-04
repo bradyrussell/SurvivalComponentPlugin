@@ -23,12 +23,12 @@ class SURVIVALCOMPONENTSPLUGIN_API IInteractable
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	// text shown when hovering over the Interactable
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Interaction") FText getInteractionText();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction") FText GetInteractionText();
 
 	// for instance, lock, unlock, search
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Interaction") FName getInteractionType();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction") FName GetInteractionType();
 
 	//interact with the object
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Interaction") bool Interact(APawn* Cause = nullptr, APlayerController* Instigator = nullptr, int32 Flag = 0);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction") bool Interact(APawn* InteractingPawn = nullptr, APlayerController* InteractingController = nullptr, int32 Flag = 0);
 
 };

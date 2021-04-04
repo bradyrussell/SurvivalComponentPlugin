@@ -99,5 +99,4 @@ void UPlayerSurvivalComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME(UPlayerSurvivalComponent, MaxOxygen);
 	DOREPLIFETIME(UPlayerSurvivalComponent, OxygenDeductedPerSecond);
 	DOREPLIFETIME(UPlayerSurvivalComponent, bIsDeductingOxygen);
-
 }

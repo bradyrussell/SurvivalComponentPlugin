@@ -32,7 +32,7 @@ void UWeaponComponent::EquipTimerCompleted() {
 	canShoot = true;
 	PendingWeapon = FWeaponProperties();
 
-	if (!OldAmmo.IsNone() && LoadedAmmo > 0) { AmmoInventory->AddItem(FItemStack(OldAmmo, LoadedAmmo)); }
+	if (!OldAmmo.IsNone() && LoadedAmmo > 0) { AmmoInventory->AddItem(FItemStack(OldAmmo, LoadedAmmo, "")); }
 
 	// this will give reloads w the duration of the equip, not a problem as long as equip time isnt way shorter than relaod
 	LoadedAmmo = 0;
@@ -58,7 +58,7 @@ void UWeaponComponent::ReloadCompleted() {
 
 	//UE_LOG(LogTemp, Warning, TEXT("need %d bullets"), AmountNeeded);
 
-	auto Obtained = AmountNeeded - AmmoInventory->RemoveItem(FItemStack(CurrentWeapon.AmmoType, AmountNeeded)).Amount;
+	auto Obtained = AmountNeeded - AmmoInventory->RemoveItem(FItemStack(CurrentWeapon.AmmoType, AmountNeeded, "")).Amount;
 
 	//UE_LOG(LogTemp, Warning, TEXT("found %d bullets"), Obtained);
 
@@ -188,7 +188,7 @@ void UWeaponComponent::Aim(FVector InVector, FRotator InRot) {
 
 bool UWeaponComponent::Reload() {
 	if (canShoot && !isReloading && LoadedAmmo < CurrentWeapon.MagazineCapacity) {
-		if (AmmoInventory->hasItem(FItemStack(CurrentWeapon.AmmoType, 1))) {
+		if (AmmoInventory->HasItem(FItemStack(CurrentWeapon.AmmoType, 1, ""))) {
 			//UE_LOG(LogTemp, Warning, TEXT("start reload"));
 			isReloading = true;
 			GetWorld()->GetTimerManager().SetTimer(ReloadingTimer, this, &UWeaponComponent::ReloadCompleted, CurrentWeapon.ReloadDuration, false);
@@ -208,7 +208,6 @@ bool UWeaponComponent::SetWeapon(FWeaponProperties NewWeapon) {
 void UWeaponComponent::SetWeaponInventory(UBaseInventoryComponent* NewInventory) { AmmoInventory = NewInventory; }
 
 void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UWeaponComponent, LoadedAmmo);
 	DOREPLIFETIME(UWeaponComponent, bIsAds);
 	DOREPLIFETIME(UWeaponComponent, isShooting);

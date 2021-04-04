@@ -25,7 +25,20 @@ USTRUCT(BlueprintType)
 	struct FChatCommandDefinition : public FTableRowBase {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") FString Permission;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") FString PermissionNode;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") TSubclassOf<UChatCommandBase> Command;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") FString InfoString;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") TArray<FString> RequiredParameterNames;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command") TArray<FString> OptionalParameterNames;
+};
+
+USTRUCT(BlueprintType)
+	struct FChatCommandPermissionGroupDefinition : public FTableRowBase {
+	GENERATED_BODY()
+	// these nodes are explicitly denied, takes precedence over AllowedNodes
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command Permissions") TSet<FString> DeniedNodes;
+	// these nodes are allowed
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command Permissions") TSet<FString> AllowedNodes;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Chat Command Permissions") FString PermissionGroup;
 
 };

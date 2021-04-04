@@ -5,43 +5,61 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
-#include "DatabaseProvider.h"
+#include "IDatabaseProvider.h"
+#include "Kismet/GameplayStatics.h"
 
 
-bool UCraftingInventoryComponent::QueueRecipe(FProcessingRecipe InRecipe) {
-	if (InRecipe.RecipeType == Type) {
-		ProcessingQueue.Enqueue(InRecipe);
+UDataTable* UCraftingInventoryComponent::GetRecipesDataTable() const {
+	const auto DB = IIDatabaseProvider::Execute_GetRecipeDefinitions(UGameplayStatics::GetGameInstance(this));
+	check(DB);
+	return DB;	
+}
+
+FProcessingRecipe* UCraftingInventoryComponent::GetRecipeDefinition(FName Recipe) const{
+	return GetRecipesDataTable()->FindRow<FProcessingRecipe>(Recipe, TEXT("UCraftingInventoryComponent::GetRecipeDefinition(FName Recipe)"));
+}
+
+bool UCraftingInventoryComponent::QueueRecipe(FName InRecipe) {
+	UE_LOG(LogTemp,Warning,TEXT("Queue Recipe %s"), *InRecipe.ToString());
+	const auto RecipeDefinition = GetRecipeDefinition(InRecipe);
+	if(!RecipeDefinition) return false;
+	if (RecipeDefinition->RecipeType == Type) {
+		ProcessingQueue.Add(InRecipe);
 		Multi_QueuedProcessingRecipe(InRecipe);
 	}
-	return InRecipe.RecipeType == Type;
+	return RecipeDefinition->RecipeType == Type;
 }
 
 bool UCraftingInventoryComponent::BeginProcessing() {
-	if (bIsCurrentlyProcessing || ProcessingQueue.IsEmpty())
+	UE_LOG(LogTemp,Warning,TEXT("Pre Begin Processing %d"), ProcessingQueue.Num());
+	if (bIsCurrentlyProcessing || ProcessingQueue.Num() == 0)
 		return false;
 
-	setLocked(true);
-	ProcessingQueue.Dequeue(CurrentJob_Recipe);
+	//setLocked(true);
+	CurrentJob = ProcessingQueue[0];
+	ProcessingQueue.RemoveAt(0);
 
-	if (CurrentJob_Recipe.ProcessingDuration == 0.f) {
+	UE_LOG(LogTemp,Warning,TEXT("Begin Processing %s"), *CurrentJob.ToString());
+	
+	const auto RecipeDefinition = GetRecipeDefinition(CurrentJob);
+	if (RecipeDefinition->ProcessingDuration <= 0.f) {
 		// zero duration , complete instantly
+		UE_LOG(LogTemp,Warning,TEXT("Instant Processing %s"), *CurrentJob.ToString());
+		Multi_BeginProcessingRecipe(CurrentJob);
 		EndProcessing();
-		Multi_BeginProcessingRecipe(CurrentJob_Recipe);
 		return true;
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(CurrentJob_Timer, this, &UCraftingInventoryComponent::EndProcessing, CurrentJob_Recipe.ProcessingDuration, false);
+	GetWorld()->GetTimerManager().SetTimer(CurrentJob_Timer, this, &UCraftingInventoryComponent::EndProcessing, RecipeDefinition->ProcessingDuration, false);
 	if (CurrentJob_Timer.IsValid())
 		bIsCurrentlyProcessing = true;
 	//Client_ExpectedFinish = FDateTime::Now()
-	Multi_BeginProcessingRecipe(CurrentJob_Recipe);
+	Multi_BeginProcessingRecipe(CurrentJob);
 	return bIsCurrentlyProcessing;
 }
 
-FProcessingRecipe UCraftingInventoryComponent::PeekNextRecipe() const {
-	FProcessingRecipe out;
-	ProcessingQueue.Peek(out);
-	return out;
+FName UCraftingInventoryComponent::PeekNextRecipe() const {
+	return ProcessingQueue[0];
 }
 
 bool UCraftingInventoryComponent::AddFuel(float Amount) {
@@ -51,22 +69,39 @@ bool UCraftingInventoryComponent::AddFuel(float Amount) {
 	return true;
 }
 
-void UCraftingInventoryComponent::Multi_BeginProcessingRecipe_Implementation(FProcessingRecipe Recipe) {
+TArray<FName> UCraftingInventoryComponent::GetAvailableRecipes() {
+	UDataTable* RecipesTable = GetRecipesDataTable();
+
+	TArray<FName> AvailableRecipes;
+	
+	for(auto& Recipe:RecipesTable->GetRowNames()) {
+		FProcessingRecipe* ProcessingRecipe = GetRecipeDefinition(Recipe);
+		if (HasItems(ProcessingRecipe->InputItems) &&
+		(!ProcessingRecipe->bRequiresCatalyst || HasItems(ProcessingRecipe->CatalystItems)) &&
+		(!ProcessingRecipe->bRequiresFuel || ProcessingRecipe->FuelRequired <= Fuel)) {
+			AvailableRecipes.Add(Recipe);
+		}
+	}
+
+	return AvailableRecipes;
+}
+
+void UCraftingInventoryComponent::Multi_BeginProcessingRecipe_Implementation(FName Recipe) {
 	if (BeginProcessingRecipe_Event.IsBound())
 		BeginProcessingRecipe_Event.Broadcast(Recipe);
 }
 
-void UCraftingInventoryComponent::Multi_FinishProcessingRecipe_Implementation(FProcessingRecipe Recipe) {
+void UCraftingInventoryComponent::Multi_FinishProcessingRecipe_Implementation(FName Recipe) {
 	if (FinishProcessingRecipe_Event.IsBound())
 		FinishProcessingRecipe_Event.Broadcast(Recipe);
 }
 
-void UCraftingInventoryComponent::Multi_FailedProcessingRecipe_Implementation(FProcessingRecipe Recipe) {
+void UCraftingInventoryComponent::Multi_FailedProcessingRecipe_Implementation(FName Recipe) {
 	if (FailedProcessingRecipe_Event.IsBound())
 		FailedProcessingRecipe_Event.Broadcast(Recipe);
 }
 
-void UCraftingInventoryComponent::Multi_QueuedProcessingRecipe_Implementation(FProcessingRecipe Recipe) {
+void UCraftingInventoryComponent::Multi_QueuedProcessingRecipe_Implementation(FName Recipe) {
 	if (QueuedProcessingRecipe_Event.IsBound())
 		QueuedProcessingRecipe_Event.Broadcast(Recipe);
 }
@@ -75,43 +110,47 @@ void UCraftingInventoryComponent::EndProcessing() {
 	if (!bIsCurrentlyProcessing)
 		return;
 
+	UE_LOG(LogTemp,Warning,TEXT("End Processing %s"), *CurrentJob.ToString());
+	
+	const auto RecipeDefinition = GetRecipeDefinition(CurrentJob);
+	
 	// do crafting recipe
-	if (hasItems(CurrentJob_Recipe.InputItems) &&
-		(!CurrentJob_Recipe.bRequiresCatalyst || hasItems(CurrentJob_Recipe.CatalystItems)) &&
-		(!CurrentJob_Recipe.bRequiresFuel || CurrentJob_Recipe.FuelRequired <= Fuel)) {
-		if (CurrentJob_Recipe.bRequiresFuel)
-			Fuel -= CurrentJob_Recipe.FuelRequired;
+	if (HasItems(RecipeDefinition->InputItems) &&
+		(!RecipeDefinition->bRequiresCatalyst || HasItems(RecipeDefinition->CatalystItems)) &&
+		(!RecipeDefinition->bRequiresFuel || RecipeDefinition->FuelRequired <= Fuel)) {
+		if (RecipeDefinition->bRequiresFuel)
+			Fuel -= RecipeDefinition->FuelRequired;
 
-		if (areAllEmpty(RemoveItems(CurrentJob_Recipe.InputItems))) {
-			auto OutItems = CurrentJob_Recipe.OutputItems;
-			if (CurrentJob_Recipe.bHasVariableYield) {
+		if (AreAllEmpty(RemoveItems(RecipeDefinition->InputItems))) {
+			auto OutItems = RecipeDefinition->OutputItems;
+			if (RecipeDefinition->bHasVariableYield) {
 				for (auto& elem : OutItems) {
-					float yield = FMath::RandRange(CurrentJob_Recipe.VariableYieldRange.X, CurrentJob_Recipe.VariableYieldRange.Y);
+					const float yield = FMath::RandRange(RecipeDefinition->VariableYieldRange.X, RecipeDefinition->VariableYieldRange.Y);
 					elem.Amount *= yield;
 				}
 			}
 
-			auto overflow = AddItems(OutItems);
-			if(!areAllEmpty(overflow)) { // no room todo maybe drop in world?
+			const auto overflow = AddItems(OutItems);
+			if(!AreAllEmpty(overflow)) { // no room todo maybe drop in world?
 				CancelAndClearQueue();
 				return;
 			}
 
 		}
-		Multi_FinishProcessingRecipe(CurrentJob_Recipe);
+		Multi_FinishProcessingRecipe(CurrentJob);
 	}
 	else {
-		if (CurrentJob_Recipe.FuelRequired > Fuel)
-			ClearQueue();
-
-		Multi_FailedProcessingRecipe(CurrentJob_Recipe);
+		/*if (RecipeDefinition->FuelRequired > Fuel)
+			ClearQueue();*/
+		ProcessingQueue.Remove(CurrentJob); // remove any further copies of the same recipe in the queue
+		Multi_FailedProcessingRecipe(CurrentJob);
 	}
 
-	CurrentJob_Timer.Invalidate();
+	GetWorld()->GetTimerManager().ClearTimer(CurrentJob_Timer);
 	bIsCurrentlyProcessing = false;
-	setLocked(false);
+	//setLocked(false);
 
-	if (!ProcessingQueue.IsEmpty())
+	if (ProcessingQueue.Num() > 0)
 		BeginProcessing();
 }
 
@@ -119,9 +158,9 @@ void UCraftingInventoryComponent::CancelProcessing() {
 	if (!bIsCurrentlyProcessing)
 		return;
 	bIsCurrentlyProcessing = false;
-	CurrentJob_Timer.Invalidate();
-	setLocked(false);
-	Multi_FailedProcessingRecipe(CurrentJob_Recipe);
+	GetWorld()->GetTimerManager().ClearTimer(CurrentJob_Timer);
+	//setLocked(false);
+	Multi_FailedProcessingRecipe(CurrentJob);
 }
 
 void UCraftingInventoryComponent::ClearQueue() { ProcessingQueue.Empty(); }
@@ -131,61 +170,17 @@ void UCraftingInventoryComponent::CancelAndClearQueue() {
 	CancelProcessing();
 }
 
-bool UCraftingInventoryComponent::isCurrentlyProcessing() const { return bIsCurrentlyProcessing; }
+bool UCraftingInventoryComponent::IsCurrentlyProcessing() const { return bIsCurrentlyProcessing; }
 
 float UCraftingInventoryComponent::GetRemainingTime() const { return GetWorld()->GetTimerManager().GetTimerRemaining(CurrentJob_Timer); }
 
 float UCraftingInventoryComponent::GetElapsedTime() const { return GetWorld()->GetTimerManager().GetTimerElapsed(CurrentJob_Timer); }
 
-void UCraftingInventoryComponent::Server_QueueRecipe_Implementation(FName RecipeName) {
-	auto recipe = UDatabaseProvider::GetRecipeDefinition(this, RecipeName);
-	QueueRecipe(recipe);
-}
-
-bool UCraftingInventoryComponent::Server_QueueRecipe_Validate(FName RecipeName) {
-	return UDatabaseProvider::GetRecipeExists(this,RecipeName);
-}
-
-void UCraftingInventoryComponent::Server_BeginProcessing_Implementation() {
-	BeginProcessing();
-}
-
-bool UCraftingInventoryComponent::Server_BeginProcessing_Validate() {
-	return true;
-}
-
-void UCraftingInventoryComponent::Server_CancelAndClearQueue_Implementation() {
-	CancelAndClearQueue();
-}
-
-bool UCraftingInventoryComponent::Server_CancelAndClearQueue_Validate() {
-	return true;
-}
-
-void UCraftingInventoryComponent::Server_ClearQueue_Implementation() {
-	ClearQueue();
-}
-
-bool UCraftingInventoryComponent::Server_ClearQueue_Validate() {
-	return true;
-}
-
-void UCraftingInventoryComponent::Server_CancelProcessing_Implementation() {
-	CancelProcessing();
-}
-
-bool UCraftingInventoryComponent::Server_CancelProcessing_Validate() {
-	return true;
-}
-
 void UCraftingInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
 	DOREPLIFETIME(UCraftingInventoryComponent, Type);
 	DOREPLIFETIME(UCraftingInventoryComponent, Fuel);
 	DOREPLIFETIME(UCraftingInventoryComponent, bIsCurrentlyProcessing);
-	DOREPLIFETIME(UCraftingInventoryComponent, CurrentJob_Recipe);
-	DOREPLIFETIME(UCraftingInventoryComponent, MaximumFuel);
-	//DOREPLIFETIME(UCraftingInventoryComponent, CurrentJob_Timer);
-	//DOREPLIFETIME(UCraftingInventoryComponent, Client_ExpectedFinish);
+	DOREPLIFETIME(UCraftingInventoryComponent, CurrentJob);
+	DOREPLIFETIME(UCraftingInventoryComponent, ProcessingQueue);
 }

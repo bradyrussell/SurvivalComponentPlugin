@@ -180,54 +180,54 @@ FString ABuildingUnitBase::NewSerializeTest(ABuildingUnitBase* RootBuildingUnitB
 	return ffs;
 }
 
-bool ABuildingUnitBase::SaveToFile(ABuildingUnitBase* RootBuildingUnitBase) {
-	FBufferArchive buf(true);
-
-	const auto Root = RootBuildingUnitBase->RecursiveGetRoot();
-	auto SerializedBuildingUnit = Root->SerializeToStruct();
-
-	FSerializedBuilding sb;
-	sb.Root = SerializedBuildingUnit;
-	sb.RootTransform = Root->GetActorTransform();
-	
-	//////////////////
-	buf << sb;
-	
-	UE_LOG(LogTemp, Warning, TEXT("RecursiveSerialize has finished, %d bytes."),buf.Num());
-
-	TArray<uint8> compressedData;
-	FArchiveSaveCompressedProxy compress = FArchiveSaveCompressedProxy(compressedData, NAME_Zlib);
-
-	compress << buf;
-	compress.Flush();
-	
-	FFileHelper::SaveArrayToFile(compressedData, BASEFILE);
-	UE_LOG(LogTemp, Warning, TEXT("RecursiveSerialize compressed archive length: %d"), compressedData.Num());
-
-	compress.Close();
-	return true;
-}
-
-bool ABuildingUnitBase::LoadFromFile(UObject* WorldContextObject,FTransform RootLocation) {
-	TArray<uint8> data, rawData;
-	FFileHelper::LoadFileToArray(data,BASEFILE);
-
-	FArchiveLoadCompressedProxy decompress(data, NAME_Zlib);
-
-	decompress << rawData;
-	
-	FMemoryReader reader(rawData, true);
-	
-	FSerializedBuilding sb;
-
-	reader << sb;
-
-	sb.RootTransform = RootLocation;
-	
-	DeserializeBuildingFromStruct(WorldContextObject,sb);
-	
-	return true;
-}
+// bool ABuildingUnitBase::SaveToFile(ABuildingUnitBase* RootBuildingUnitBase) {
+// 	FBufferArchive buf(true);
+//
+// 	const auto Root = RootBuildingUnitBase->RecursiveGetRoot();
+// 	auto SerializedBuildingUnit = Root->SerializeToStruct();
+//
+// 	FSerializedBuilding sb;
+// 	sb.Root = SerializedBuildingUnit;
+// 	sb.RootTransform = Root->GetActorTransform();
+// 	
+// 	//////////////////
+// 	buf << sb;
+// 	
+// 	UE_LOG(LogTemp, Warning, TEXT("RecursiveSerialize has finished, %d bytes."),buf.Num());
+//
+// 	TArray<uint8> compressedData;
+// 	FArchiveSaveCompressedProxy compress = FArchiveSaveCompressedProxy(compressedData, NAME_Zlib);
+//
+// 	compress << buf;
+// 	compress.Flush();
+// 	
+// 	FFileHelper::SaveArrayToFile(compressedData, BASEFILE);
+// 	UE_LOG(LogTemp, Warning, TEXT("RecursiveSerialize compressed archive length: %d"), compressedData.Num());
+//
+// 	compress.Close();
+// 	return true;
+// }
+//
+// bool ABuildingUnitBase::LoadFromFile(UObject* WorldContextObject,FTransform RootLocation) {
+// 	TArray<uint8> data, rawData;
+// 	FFileHelper::LoadFileToArray(data,BASEFILE);
+//
+// 	FArchiveLoadCompressedProxy decompress(data, NAME_Zlib);
+//
+// 	decompress << rawData;
+// 	
+// 	FMemoryReader reader(rawData, true);
+// 	
+// 	FSerializedBuilding sb;
+//
+// 	reader << sb;
+//
+// 	sb.RootTransform = RootLocation;
+// 	
+// 	DeserializeBuildingFromStruct(WorldContextObject,sb);
+// 	
+// 	return true;
+// }
 
 // override this function to write metadata if need be
 FSerializedBuildingUnit ABuildingUnitBase::SerializeToStruct() {

@@ -11,18 +11,19 @@
 /**
  * 
  */
-UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Blueprintable )
+UCLASS( ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent) )
 class SURVIVALCOMPONENTSPLUGIN_API UContainerInventoryComponent : public UBaseInventoryComponent
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) FText ContainerTitle;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) FString ContainerOwner;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, SaveGame, Category="Inventory - Container") FText ContainerTitle;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, SaveGame, Category="Inventory - Container") FString ContainerOwner;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container", SaveGame) bool bIsLocked = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Inventory - Container") float InteractDistanceSquared = 1000 * 1000;
 
-	// controllers who are currently looking at inventory contents
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Inventory - Container") TArray<APlayerController*> CurrentViewers;
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, BlueprintNativeEvent, Category="Inventory - Container") bool CanPlayerInteract(APlayerController* Player);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="Inventory - Container") bool bIsLocked = false;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory - Container") void setLocked(bool Locked);
 
